@@ -1,0 +1,28 @@
+name: Get Commits Since Tag
+
+description: Extract commits since given tag
+
+inputs:
+  tag:
+    required: true
+    description: Git tag to compare from
+
+outputs:
+  commits:
+    description: Commit messages
+
+runs:
+  using: composite
+  steps:
+    - name: Get commits
+      id: commits
+      shell: bash
+      run: |
+        if [[ "${{ inputs.tag }}" != "0.0.0" ]]; then
+          commits=$(git log "${{ inputs.tag }}"..HEAD --pretty=format:"%s|%b")
+        else
+          commits=$(git log HEAD --pretty=format:"%s|%b")
+        fi
+        echo "commits<<EOF" >> $GITHUB_OUTPUT
+        echo "$commits" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
