@@ -1,0 +1,27 @@
+name: Check if Should Proceed
+
+inputs:
+  commits:
+    required: true
+  force:
+    required: true
+
+outputs:
+  proceed:
+    description: 'true' or 'false'
+
+runs:
+  using: composite
+  steps:
+    - name: Determine whether to proceed
+      id: check
+      shell: bash
+      run: |
+        if [[ -z "${{ inputs.commits }}" ]]; then
+          if [[ "${{ inputs.force }}" != "true" ]]; then
+            echo "proceed=false" >> $GITHUB_OUTPUT
+            echo "::warning ::No commits found. Skipping release."
+            exit 0
+          fi
+        fi
+        echo "proceed=true" >> $GITHUB_OUTPUT
