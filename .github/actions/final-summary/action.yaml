@@ -1,0 +1,29 @@
+name: Final Summary
+
+inputs:
+  version:
+    required: true
+  prerelease:
+    required: false
+    default: ""
+
+runs:
+  using: composite
+  steps:
+    - name: Print summary
+      shell: bash
+      run: |
+        repo="${{ github.repository }}"
+        url="https://github.com/${repo}/releases/tag/${{ inputs.version }}"
+
+        echo "::notice ::\ud83d\udcc6 Release Summary"
+        echo "::notice ::\ud83d\udd16 Tag: ${{ inputs.version }}"
+
+        if [[ "${{ inputs.prerelease }}" != "" && "${{ inputs.prerelease }}" != "none" ]]; then
+          echo "::notice ::\ud83d\udea7 Pre-release: ${{ inputs.prerelease }}"
+        else
+          echo "::notice ::\u2705 Production Release"
+        fi
+
+        echo "::notice ::\ud83d\udd17 URL: $url"
+        echo "::notice ::\ud83c\udf89 Release successfully created!"
