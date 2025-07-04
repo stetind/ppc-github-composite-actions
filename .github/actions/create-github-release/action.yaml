@@ -1,0 +1,26 @@
+name: Create GitHub Release
+
+inputs:
+  version:
+    required: true
+  changelog:
+    required: true
+  prerelease:
+    required: false
+    default: "false"
+  target_branch:
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ inputs.version }}
+        name: Release ${{ inputs.version }}
+        body: ${{ inputs.changelog }}
+        prerelease: ${{ inputs.prerelease }}
+        target_commitish: ${{ inputs.target_branch }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
