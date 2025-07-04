@@ -1,0 +1,52 @@
+name: Detect Version Bump
+description: Compute new version based on conventional commits
+
+inputs:
+  tag:
+    required: true
+  commits:
+    required: true
+outputs:
+  new_version:
+    description: "The computed new version"
+runs:
+  using: "composite"
+  steps:
+    - name: Compute new version
+      id: bump
+      shell: bash
+      run: |
+        current_version="${{ inputs.tag }}"
+        current_version="${current_version#v}"
+        IFS='.' read -r major minor patch <<< "$current_version"
+        
+        bump_major=0
+        bump_minor=0
+        bump_patch=0
+
+        while IFS= read -r line; do
+          if [[ "$line" =~ ^(feat|fix|chore|refactor|perf|style|test|build|ci)(\([^)]+\))?!?: ]]; then
+            type=$(echo "$line" | sed -E 's/^([a-z]+).*/\1/')
+            if [[ "$line" =~ "!" ]]; then
+              bump_major=1
+            elif [[ "$type" == "feat" ]]; then
+              bump_minor=1
+            elif [[ "$type" == "fix" ]]; then
+              bump_patch=1
+            fi
+          elif [[ "$line" =~ BREAKING[[:space:]]CHANGE ]]; then
+            bump_major=1
+          fi
+        done <<< "${{ inputs.commits }}"
+
+        if [[ "$bump_major" == 1 ]]; then
+          new_version="$((major + 1)).0.0"
+        elif [[ "$bump_minor" == 1 ]]; then
+          new_version="$major.$((minor + 1)).0"
+        elif [[ "$bump_patch" == 1 ]]; then
+          new_version="$major.$minor.$((patch + 1))"
+        else
+          new_version="$current_version"
+        fi
+
+        echo "new_version=v$new_version" >> $GITHUB_OUTPUT
