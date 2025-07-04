@@ -1,0 +1,15 @@
+name: Get Latest Git Tag
+
+outputs:
+  latest_tag:
+    description: Latest git tag
+
+runs:
+  using: composite
+  steps:
+    - name: Get latest tag
+      id: tag
+      shell: bash
+      run: |
+        latest_tag=$(git tag --list | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
+        echo "latest_tag=${latest_tag:-0.0.0}" >> $GITHUB_OUTPUT
