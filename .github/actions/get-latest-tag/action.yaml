@@ -1,5 +1,8 @@
 name: Get Latest Git Tag
 
+env:
+  GH_TOKEN : ${{ env.GH_TOKEN }}
+
 inputs:
   tag:
     type: string
