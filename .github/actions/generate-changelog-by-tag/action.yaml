@@ -47,6 +47,7 @@ runs:
 
     - name: Set Target tag
       id: version
+      shell: bash
       run: |
           if [[ -n "${{ inputs.new_tag }}" ]]; then
             echo "new_tag=${{ inputs.new_tag }}" >> $GITHUB_OUTPUT
