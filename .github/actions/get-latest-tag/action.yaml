@@ -27,6 +27,7 @@ runs:
 
     - name: 🏷️ Use provided tag or latest tag
       id: select_tag
+      shell: bash
       run: |
         LATEST="${{ steps.get_tag.outputs.latest_tag }}"
         TAG_INPUT="${{ inputs.tag }}"
