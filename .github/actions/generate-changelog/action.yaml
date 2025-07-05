@@ -3,6 +3,10 @@ name: Generate Changelog
 inputs:
   commits:
     required: true
+  previous_tag:
+    required: true
+  new_tag:
+    required: true
 
 outputs:
   changelog:
@@ -16,7 +20,9 @@ runs:
       id: log
       shell: bash
       run: |
-        declare -A sections=(
+        echo "🔧 Generating changelog..."
+        declare -A sections
+        sections=(
           [breaking]="### 💥 Breaking Changes"
           [feat]="### ✨ Features"
           [fix]="### 🐞 Fixes"
@@ -46,7 +52,9 @@ runs:
           fi
         done <<< "${{ inputs.commits }}"
 
-        changelog=""
+        changelog="### 🧾 Changes form \`${{ inputs.previous_tag }}\` → \`${{ inputs.new_tag }}\`\n"
+        changelog+="[see changes](https://github.com/${{ github.repository }}/compare/${{ inputs.previous_tag }}...${{ inputs.new_tag }})\n\n"
+        
         for key in "${!sections[@]}"; do
           if [[ -n "${grouped[$key]}" ]]; then
             changelog+="${sections[$key]}\\n${grouped[$key]}\\n"
