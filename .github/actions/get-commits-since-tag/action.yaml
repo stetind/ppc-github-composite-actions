@@ -10,6 +10,7 @@ inputs:
 outputs:
   commits:
     description: Commit messages
+    value: ${{ steps.commits.outputs.commits }}
 
 runs:
   using: composite
