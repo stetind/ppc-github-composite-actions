@@ -12,13 +12,13 @@ outputs:
     value: ${{ steps.select_tag.outputs.selected_tag }}
   latest_tag:
     description: Latest git tag
-    value: ${{ steps.tag.outputs.latest_tag }}
+    value: ${{ steps.get_tag.outputs.latest_tag }}
 
 runs:
   using: composite
   steps:
     - name: 🏷️ Get latest tag
-      id: tag
+      id: get_tag
       shell: bash
       run: |
         latest_tag=$(git tag --list | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
