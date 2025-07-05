@@ -12,6 +12,8 @@ inputs:
     default: 'false'
 
 outputs:
+  new_tag:
+    value: ${{ steps.version.outputs.new_tag }}
   has_changes:
     value: ${{ steps.log.outputs.has_changes }}
   changelog:
@@ -33,7 +35,24 @@ runs:
       with:
         commits: ${{ steps.get_commits.outputs.commits }}
         force: ${{ inputs.force }} 
-    
+          
+    - name: 🔍 Detect version bump and compute new version
+      id: detect_version
+      if: inputs.new_tag == ''
+      uses: stetind/ppc-github-composite-actions/.github/actions/detect-version-bump@main
+      with:
+        commits: ${{ steps.get_commits.outputs.commits }}
+        tag: ${{ inputs.previous_tag }}
+
+    - name: Set Target tag
+      id: version
+      run: |
+          if [[ -n "${{ inputs.new_tag }}" ]]; then
+            echo "new_tag=${{ inputs.new_tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "new_tag=${{ steps.detect_version.outputs.new_version }}" >> $GITHUB_OUTPUT
+          fi
+          
     - name: Generate grouped ChangeLog
       id: log
       if: steps.check_commits.outputs.proceed == 'true'
@@ -41,5 +60,5 @@ runs:
       with:
         commits: ${{ steps.get_commits.outputs.commits }}
         previous_tag: ${{ inputs.previous_tag }}
-        new_tag: ${{ inputs.new_tag }}
+        new_tag: ${{ steps.version.outputs.new_tag }}
         repository: ${{ inputs.repository }}
