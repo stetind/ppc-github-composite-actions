@@ -9,6 +9,7 @@ inputs:
 outputs:
   proceed:
     description: Whether to proceed with release
+    value: ${{ steps.check.outputs.proceed }}
 
 runs:
   using: composite
