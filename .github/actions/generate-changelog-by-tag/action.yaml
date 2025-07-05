@@ -4,7 +4,8 @@ inputs:
   previous_tag:
     required: true
   new_tag:
-    required: true
+    required: false
+    default: ''
   repository:
     required: true
   force:
