@@ -22,35 +22,38 @@ runs:
       shell: bash
       run: |
         # Loop through the latest releases and find the most recent published release tag
+          set -eo pipefail
+          
           page=1
           latest_tag="not_found"
+          
           while true; do
             echo "🔄 Fetching page $page of releases..."
-            releases=$(gh api "/repos/${{ github.repository }}/releases?per_page=100&page=$page" --jq '.[] | select(.draft==false) | .tag_name')
-
-            # Break if no more releases
+            releases=$(gh api "/repos/${{ github.repository }}/releases?per_page=100&page=$page" \
+              --jq '[.[] | select(.draft == false and .prerelease == false and .tag_name | test("^v[0-9]+\\.[0-9]+\\.[0-9]+$")) | .tag_name][]')
+          
             if [[ -z "$releases" ]]; then
               break
             fi
-
-            # Find the latest tag (assumed to be ordered)
+          
             for tag in $releases; do
               latest_tag=$tag
+              break  # first valid one (most recent)
             done
-
-            # Stop if the latest tag was found
+          
             if [[ "$latest_tag" != "not_found" ]]; then
-              echo "latest_tag=${latest_tag}" >> $GITHUB_OUTPUT
-              echo "::notice ::Latest published release tag found: $latest_tag"
+              echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+              echo "::notice ::Latest published semver tag found: $latest_tag"
               break
             fi
-
-            ((page+=1))  # Increment page for next API request
+          
+            ((page+=1))
           done
-
+          
           if [[ "$latest_tag" == "not_found" ]]; then
-            echo "::warning ::No published release found, using 0.0.0 as the latest tag."
-            echo "latest_tag=0.0.0" >> $GITHUB_OUTPUT
+            echo "::warning ::No valid semver published release tag found, using v0.0.0"
+            echo "latest_tag=v0.0.0" >> $GITHUB_OUTPUT
+          fi
 
     - name: 🏷️ Use provided tag or latest tag
       id: select_tag
