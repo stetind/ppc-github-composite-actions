@@ -8,7 +8,7 @@ inputs:
 
 outputs:
   proceed:
-    description: 'true' or 'false'
+    description: Whether to proceed with release
 
 runs:
   using: composite
