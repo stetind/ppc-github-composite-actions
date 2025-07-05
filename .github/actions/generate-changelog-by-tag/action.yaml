@@ -7,6 +7,9 @@ inputs:
     required: true
   repository:
     required: true
+  force:
+    required: false
+    default: 'false'
 
 outputs:
   has_changes:
