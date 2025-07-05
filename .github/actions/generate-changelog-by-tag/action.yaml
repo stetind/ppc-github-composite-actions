@@ -31,7 +31,7 @@ runs:
       id: check_commits
       uses: stetind/ppc-github-composite-actions/.github/actions/check-should-proceed@main
       with:
-        commits: ${{ step.get_commits.outputs.commits }}
+        commits: ${{ steps.get_commits.outputs.commits }}
         force: ${{ inputs.force }} 
     
     - name: Generate grouped ChangeLog
@@ -39,7 +39,7 @@ runs:
       if: steps.check_commits.outputs.proceed == 'true'
       uses: stetind/ppc-github-composite-actions/.github/actions/generate-changelog@main
       with:
-        commits: ${{ step.get_commits.outputs.commits }}
+        commits: ${{ steps.get_commits.outputs.commits }}
         previous_tag: ${{ inputs.previous_tag }}
         new_tag: ${{ inputs.new_tag }}
         repository: ${{ inputs.repository }}
