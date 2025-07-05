@@ -11,8 +11,6 @@ inputs:
     required: true
 
 outputs:
-  has_changes:
-    value: ${{ steps.log.outputs.has_changes }}
   changelog:
     description: Markdown changelog
     value: ${{ steps.log.outputs.changelog }}
@@ -64,8 +62,6 @@ runs:
             changelog+="${sections[$key]}\\n${grouped[$key]}\\n"
           fi
         done
-
-        echo "has_changes=true" >> $GITHUB_OUTPUT
 
         echo "changelog<<EOF" >> $GITHUB_OUTPUT
         echo -e "$changelog" >> $GITHUB_OUTPUT
