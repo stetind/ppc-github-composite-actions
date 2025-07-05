@@ -27,7 +27,7 @@ runs:
       with:
         tag: ${{ inputs.previous_tag }}
 
-   - name: 🚨 Check if commits found or force proceed
+    - name: 🚨 Check if commits found or force proceed
       id: check_commits
       uses: stetind/ppc-github-composite-actions/.github/actions/check-should-proceed@main
       with:
