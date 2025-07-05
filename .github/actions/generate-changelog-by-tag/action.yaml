@@ -11,7 +11,6 @@ inputs:
 outputs:
   has_changes:
     value: ${{ steps.log.outputs.has_changes }}
-    default: 'false'
   changelog:
     description: Markdown changelog
     value: ${{ steps.log.outputs.changelog }}
