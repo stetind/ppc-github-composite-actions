@@ -36,6 +36,7 @@ runs:
         
         # Declare an associative array for grouped commits by type
         declare -A grouped
+        declare -A seen_commits  # To track already seen commit messages (avoiding duplicates)
         
         # Loop through commits and group them by type (feat, fix, etc.)
         while IFS='|' read -r subject body; do
@@ -44,10 +45,15 @@ runs:
           
           # Only group commits of recognized types (feat, fix, etc.)
           if [[ -n "$type" && "${sections[$type]}" ]]; then
-            # Add the commit subject to the corresponding type section
-            grouped[$type]+="- $subject\\n"
+            # Check for duplicates (if already seen)
+            if [[ -z "${seen_commits[$subject]}" ]]; then
+              # Add the commit subject to the corresponding type section and mark as seen
+              grouped[$type]+="- $subject\\n"
+              seen_commits[$subject]=1  # Mark this commit as seen
+            fi
           fi
         done <<< "${{ inputs.commits }}"
+
         
         # Start creating the changelog with previous and new tags
         changelog="### 🧾 Changes from \`${{ inputs.previous_tag }}\` → \`${{ inputs.new_tag }}\`\n"
