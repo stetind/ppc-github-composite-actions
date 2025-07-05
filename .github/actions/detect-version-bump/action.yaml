@@ -20,14 +20,25 @@ runs:
       run: |
         current_version="${{ inputs.tag }}"
         current_version="${current_version#v}"
+        if [[ -z "$current_version" ]]; then
+          current_version="0.0.0"
+        fi
+
         IFS='.' read -r major minor patch <<< "$current_version"
-        
+
+        if [[ "$current_version" != "0.0.0" ]]; then
+          commits=$(git log "v${current_version}"..HEAD --pretty=format:"%s%n%b")
+        else
+          commits=$(git log HEAD --pretty=format:"%s%n%b")
+        fi
+
         bump_major=0
         bump_minor=0
         bump_patch=0
 
         while IFS= read -r line; do
-          if [[ "$line" =~ ^(feat|fix|chore|refactor|perf|style|test|build|ci)(\([^)]+\))?!?: ]]; then
+          # Detect conventional commits with optional scope and optional breaking change (!)
+          if [[ "$line" =~ ^(feat|fix|chore|refactor|perf|style|test|build|ci)(\([a-zA-Z0-9_-]+\))?!?: ]]; then
             type=$(echo "$line" | sed -E 's/^([a-z]+).*/\1/')
             if [[ "$line" =~ "!" ]]; then
               bump_major=1
@@ -48,7 +59,9 @@ runs:
         elif [[ "$bump_patch" == 1 ]]; then
           new_version="$major.$minor.$((patch + 1))"
         else
+          echo "::warning ::No version bump rule matched. Keeping current version: $current_version"
           new_version="$current_version"
         fi
 
+        echo "::notice ::New version computed: v$new_version"
         echo "new_version=v$new_version" >> $GITHUB_OUTPUT
