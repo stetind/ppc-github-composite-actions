@@ -16,7 +16,7 @@ outputs:
   new_tag:
     value: ${{ steps.version.outputs.new_tag }}
   has_changes:
-    value: ${{ steps.log.outputs.has_changes }}
+    value: ${{ steps.check_commits.outputs.proceed == 'true' }}
   changelog:
     description: Markdown changelog
     value: ${{ steps.log.outputs.changelog }}
