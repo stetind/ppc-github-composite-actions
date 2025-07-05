@@ -3,6 +3,7 @@ name: Get Latest Git Tag
 outputs:
   latest_tag:
     description: Latest git tag
+    value: ${{ steps.get.outputs.latest_tag }}
 
 runs:
   using: composite
@@ -12,4 +13,5 @@ runs:
       shell: bash
       run: |
         latest_tag=$(git tag --list | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1)
-        echo "latest_tag=${latest_tag:-0.0.0}" >> $GITHUB_OUTPUT
+        latest_tag=${latest_tag:-0.0.0}
+        echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
