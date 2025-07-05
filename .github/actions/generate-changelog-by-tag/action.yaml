@@ -35,51 +35,8 @@ runs:
     - name: Generate grouped ChangeLog
       id: log
       if: steps.check_commits.outputs.proceed == 'true'
-      shell: bash
-      run: |
-        echo "🔧 Generating changelog..."
-        declare -A sections
-        sections=(
-          [breaking]="### 💥 Breaking Changes"
-          [feat]="### ✨ Features"
-          [fix]="### 🐞 Fixes"
-          [chore]="### 🔧 Chores"
-          [docs]="### 📚 Documentation"
-          [refactor]="### 🔄 Refactors"
-          [test]="### ✅ Tests"
-        )
-
-        declare -A grouped
-
-        while IFS='|' read -r subject body; do
-          if [[ "$subject" =~ !: ]] || [[ "$body" =~ BREAKING[[:space:]]CHANGE ]]; then
-            grouped[breaking]+="- $subject\\n"
-          elif [[ "$subject" =~ ^feat: ]]; then
-            grouped[feat]+="- $subject\\n"
-          elif [[ "$subject" =~ ^fix: ]]; then
-            grouped[fix]+="- $subject\\n"
-          elif [[ "$subject" =~ ^chore: ]]; then
-            grouped[chore]+="- $subject\\n"
-          elif [[ "$subject" =~ ^docs: ]]; then
-            grouped[docs]+="- $subject\\n"
-          elif [[ "$subject" =~ ^refactor: ]]; then
-            grouped[refactor]+="- $subject\\n"
-          elif [[ "$subject" =~ ^test: ]]; then
-            grouped[test]+="- $subject\\n"
-          fi
-        done <<< "${{ step.get_commits.outputs.commits }}"
-
-        changelog="### 🧾 Changes form \`${{ inputs.previous_tag }}\` → \`${{ inputs.new_tag }}\`\n"
-        changelog+="[see changes](https://github.com/${{ inputs.repository }}/compare/${{ inputs.previous_tag }}...${{ inputs.new_tag }})\n\n"
-        
-        for key in "${!sections[@]}"; do
-          if [[ -n "${grouped[$key]}" ]]; then
-            changelog+="${sections[$key]}\\n${grouped[$key]}\\n"
-          fi
-        done
-
-        echo "has_changes=true" >> $GITHUB_OUTPUT
-        
-        echo "changelog<<EOF" >> $GITHUB_OUTPUT
-        echo -e "$changelog" >> $GITHUB_OUTPUT
-        echo "EOF" >> $GITHUB_OUTPUT
+      uses: stetind/ppc-github-composite-actions/.github/actions/generate-changelog@main
+      with:
+        commits: ${{ step.get_commits.outputs.commits }}
+        previous_tag: ${{ inputs.previous_tag }}
+        new_tag: ${{ inputs.new_tag }}
