@@ -33,36 +33,36 @@ runs:
           [refactor]="### 🔄 Refactors"
           [test]="### ✅ Tests"
         )
-
+        
+        # Declare an associative array for grouped commits by type
         declare -A grouped
-
+        
+        # Loop through commits and group them by type (feat, fix, etc.)
         while IFS='|' read -r subject body; do
-          if [[ "$subject" =~ !: ]] || [[ "$body" =~ BREAKING[[:space:]]CHANGE ]]; then
-            grouped[breaking]+="- $subject\\n"
-          elif [[ "$subject" =~ ^feat: ]]; then
-            grouped[feat]+="- $subject\\n"
-          elif [[ "$subject" =~ ^fix: ]]; then
-            grouped[fix]+="- $subject\\n"
-          elif [[ "$subject" =~ ^chore: ]]; then
-            grouped[chore]+="- $subject\\n"
-          elif [[ "$subject" =~ ^docs: ]]; then
-            grouped[docs]+="- $subject\\n"
-          elif [[ "$subject" =~ ^refactor: ]]; then
-            grouped[refactor]+="- $subject\\n"
-          elif [[ "$subject" =~ ^test: ]]; then
-            grouped[test]+="- $subject\\n"
+          # Extract the type of the commit (feat, fix, docs, etc.)
+          type=$(echo "$subject" | cut -d: -f1)
+          
+          # Only group commits of recognized types (feat, fix, etc.)
+          if [[ -n "$type" && "${sections[$type]}" ]]; then
+            # Add the commit subject to the corresponding type section
+            grouped[$type]+="- $subject\\n"
           fi
         done <<< "${{ inputs.commits }}"
-
-        changelog="### 🧾 Changes form \`${{ inputs.previous_tag }}\` → \`${{ inputs.new_tag }}\`\n"
-        changelog+="[see changes](https://github.com/${{ inputs.repository }}/compare/${{ inputs.previous_tag }}...${{ inputs.new_tag }})\n\n"
         
+        # Start creating the changelog with previous and new tags
+        changelog="### 🧾 Changes from \`${{ inputs.previous_tag }}\` → \`${{ inputs.new_tag }}\`\n"
+        changelog+="[see changes](https://github.com/${{ github.repository }}/compare/${{ inputs.previous_tag }}...${{ inputs.new_tag }})\n\n"
+        
+        # Add grouped commits to the changelog under the appropriate section
         for key in "${!sections[@]}"; do
           if [[ -n "${grouped[$key]}" ]]; then
             changelog+="${sections[$key]}\\n${grouped[$key]}\\n"
           fi
         done
-
+        
+        # Output the changelog as the result
+        echo "has_changes=true" >> $GITHUB_OUTPUT
         echo "changelog<<EOF" >> $GITHUB_OUTPUT
         echo -e "$changelog" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
+        
