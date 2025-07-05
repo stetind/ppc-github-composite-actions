@@ -9,6 +9,8 @@ inputs:
 outputs:
   new_version:
     description: "The computed new version"
+    value: ${{ steps.bump.outputs.new_version }}
+
 runs:
   using: "composite"
   steps:
