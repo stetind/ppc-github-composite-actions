@@ -2,6 +2,7 @@ name: Get Latest Git Tag
 
 env:
   GH_TOKEN : ${{ env.GH_TOKEN }}
+  GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
 
 inputs:
   tag:
