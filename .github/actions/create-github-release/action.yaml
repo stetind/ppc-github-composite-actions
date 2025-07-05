@@ -10,6 +10,9 @@ inputs:
     default: "false"
   target_branch:
     required: true
+ draft:
+    required: false
+    default: "false"
 
 runs:
   using: composite
@@ -22,5 +25,6 @@ runs:
         body: ${{ inputs.changelog }}
         prerelease: ${{ inputs.prerelease }}
         target_commitish: ${{ inputs.target_branch }}
+        draft: ${{ inputs.draft }}
       env:
         GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
