@@ -40,3 +40,4 @@ runs:
         commits: ${{ step.get_commits.outputs.commits }}
         previous_tag: ${{ inputs.previous_tag }}
         new_tag: ${{ inputs.new_tag }}
+        repository: ${{ inputs.repository }}
