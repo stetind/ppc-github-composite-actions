@@ -23,4 +23,4 @@ runs:
         prerelease: ${{ inputs.prerelease }}
         target_commitish: ${{ inputs.target_branch }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
