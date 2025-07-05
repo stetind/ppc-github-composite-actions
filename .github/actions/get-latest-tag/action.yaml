@@ -3,7 +3,7 @@ name: Get Latest Git Tag
 outputs:
   latest_tag:
     description: Latest git tag
-    value: ${{ steps.get.outputs.latest_tag }}
+    value: ${{ steps.tag.outputs.latest_tag }}
 
 runs:
   using: composite
