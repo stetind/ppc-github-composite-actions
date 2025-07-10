@@ -39,16 +39,25 @@ runs:
         declare -A seen_commits  # To track already seen commit messages (avoiding duplicates)
         
         # Loop through commits and group them by type (feat, fix, etc.)
+        # Loop through commits and group them by type (feat, fix, etc.)
         while IFS='|' read -r subject body; do
-          # Extract the type of the commit (feat, fix, docs, etc.)
-          type=$(echo "$subject" | cut -d: -f1)
-          
+          # Extract the raw type from the commit subject
+          raw_type=$(echo "$subject" | cut -d: -f1)
+        
+          # Strip '!' if it's a breaking change
+          type=$(echo "$raw_type" | sed 's/!$//')
+        
           # Only group commits of recognized types (feat, fix, etc.)
           if [[ -n "$type" && "${sections[$type]}" ]]; then
             # Check for duplicates (if already seen)
             if [[ -z "${seen_commits[$subject]}" ]]; then
-              # Add the commit subject to the corresponding type section and mark as seen
-              grouped[$type]+="- $subject\\n"
+              if [[ "$raw_type" == *"!" ]]; then
+                # Breaking change — group under `breaking`
+                grouped[breaking]+="- $subject\\n"
+              else
+                # Normal type-based grouping
+                grouped[$type]+="- $subject\\n"
+              fi
               seen_commits[$subject]=1  # Mark this commit as seen
             fi
           fi
