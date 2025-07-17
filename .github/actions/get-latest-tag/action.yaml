@@ -17,6 +17,10 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: 🔧 Install gh
+      shell: bash
+      run: apt-get update && apt-get install -y -f gh
+        
     - name: 🏷️ Get latest tag
       id: get_tag
       shell: bash
