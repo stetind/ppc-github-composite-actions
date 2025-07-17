@@ -19,7 +19,7 @@ runs:
   steps:
     - name: 🔧 Install gh
       shell: bash
-      run: apt-get update && apt-get install -y -f gh
+      run: sudo apt-get update && sudo apt-get install -y -f gh
         
     - name: 🏷️ Get latest tag
       id: get_tag
