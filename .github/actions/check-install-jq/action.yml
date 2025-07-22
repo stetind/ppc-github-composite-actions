@@ -1,0 +1,62 @@
+# ------------------------------------------------------------------------------
+# Composite Action: check-install-jq
+#
+# This action ensures the `jq` CLI JSON processor is available on the runner.
+# If not found, it installs jq using the appropriate package manager based
+# on the environment:
+#
+# Supported package managers:
+# - apt (Ubuntu/Debian)
+# - yum (RHEL/CentOS/Amazon Linux)
+# - apk (Alpine)
+# - brew (macOS with Homebrew)
+#
+# This action is useful as a prerequisite for any step or action that parses
+# or manipulates JSON data in shell scripts or composite actions.
+#
+# Behavior:
+# - Logs whether jq is already installed
+# - Attempts to install jq if missing
+# - Fails with an error if no supported package manager is found
+#
+# Output:
+# - Displays installed jq version via GitHub Actions notices
+# ------------------------------------------------------------------------------
+
+name: check-install-jq
+description: 'Ensures jq is installed and available on the runner. Installs it if missing.'
+
+runs:
+  using: composite
+  steps:
+    - name: Check and install jq
+      id: check_jq
+      shell: bash
+      run: |
+        set -e
+        echo "::notice::🔍 Checking for jq installation..."
+
+        if ! command -v jq &> /dev/null; then
+          echo "::notice::📦 jq not found. Installing..."
+
+          if command -v apt-get &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y jq
+          elif command -v yum &> /dev/null; then
+            sudo yum install -y jq
+          elif command -v apk &> /dev/null; then
+            apk add --no-cache jq
+          elif command -v brew &> /dev/null; then
+            brew install jq
+          else
+            echo "::error::Unable to install jq. No supported package manager found."
+            exit 1
+          fi
+
+          echo "::notice::✅ jq installed successfully"
+        else
+          echo "::notice::✅ jq is already installed"
+        fi
+
+        # Verify jq version
+        JQ_VERSION=$(jq --version)
+        echo "::notice::📊 Using $JQ_VERSION"

@@ -1,14 +1,38 @@
+# ------------------------------------------------------------------------------
+# Composite Action: Generate Changelog
+#
+# This action generates a formatted changelog from commit messages, categorizing
+# them based on conventional commit types (feat, fix, docs, etc.).
+#
+# The action uses the parse-commits-input action to process the commit data
+# and then processes the commits to generate a structured changelog.
+#
+# Inputs:
+# - commits: String containing commit data to process (subject§body format)
+# - previous_tag: Previous version tag for comparison link
+# - new_tag: New version tag for the changelog
+# - repository: Repository name for generating links
+#
+# Outputs:
+# - changelog: Generated changelog content in Markdown format
+# ------------------------------------------------------------------------------
+
 name: Generate Changelog
 
 inputs:
   repository:
     required: true
+    description: Repository name
   commits:
     required: true
+    description: Multiline string containing commit data to process
   previous_tag:
     required: true
+    description: Previous version tag
   new_tag:
     required: true
+    description: New version tag
+
 
 outputs:
   changelog:
@@ -32,6 +56,14 @@ runs:
           [docs]="### 📚 Documentation"
           [refactor]="### 🔄 Refactors"
           [test]="### ✅ Tests"
+          [style]="### 💎 Styles"
+          [refactor]="### 📦 Refactor"
+          [perf]="### 🚀 Performance"
+          [test]="### 🚨 Tests"
+          [build]="### 🛠️ Build"
+          [ci]="### 🔧 CI"
+          [chore]="### ♻️ Chore"
+          [revert]="### ⏪ Reverts"
         )
         
         # Declare an associative array for grouped commits by type

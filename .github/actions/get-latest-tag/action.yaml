@@ -1,59 +1,81 @@
+# ------------------------------------------------------------------------------
+# Composite Action: Get Latest Git Tag
+#
+# This action retrieves the latest published semantic version tag from the
+# repository's releases. It can also use a provided tag if specified.
+#
+# The action uses the GitHub CLI to query the repository's releases and
+# filters for published (non-draft, non-prerelease) tags that follow
+# semantic versioning format (vX.Y.Z).
+#
+# If no valid tag is found, it defaults to v0.0.0.
+#
+# Inputs:
+# - tag: Optional tag to use instead of the latest tag
+#
+# Outputs:
+# - selected_tag: The tag that was selected (either provided or latest)
+# - latest_tag: The latest published semantic version tag
+# ------------------------------------------------------------------------------
+
 name: Get Latest Git Tag
 
 inputs:
   tag:
-    type: string
     required: false
     default: ''
+    description: Optional tag to use instead of the latest tag (if empty, the latest tag will be used)
 
 outputs:
   selected_tag:
-    description: Selected git tag
+    description: The tag that was selected (either provided or latest)
     value: ${{ steps.select_tag.outputs.selected_tag }}
   latest_tag:
-    description: Latest git tag
+    description: The latest published semantic version tag from the repository
     value: ${{ steps.get_tag.outputs.latest_tag }}
 
 runs:
   using: composite
   steps:
     - name: 🔧 Install gh
-      shell: bash
-      run: apt-get update && apt-get install -y -f gh
-        
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@main
+
+    - name: 🔧 Install Jq
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@main
+
     - name: 🏷️ Get latest tag
       id: get_tag
       shell: bash
       run: |
         # Loop through the latest releases and find the most recent published release tag
           set -eo pipefail
-          
+
           page=1
           latest_tag="not_found"
-          
+
           while true; do
             echo "🔄 Fetching page $page of releases..."
             releases=$(gh api "/repos/${{ github.repository }}/releases?per_page=100&page=$page" \
               --jq '[.[] | select(.draft == false and .prerelease == false) | .tag_name | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+$"))][]')
-          
+
             if [[ -z "$releases" ]]; then
               break
             fi
-          
+
             for tag in $releases; do
               latest_tag=$tag
               break  # first valid one (most recent)
             done
-          
+
             if [[ "$latest_tag" != "not_found" ]]; then
               echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
               echo "::notice ::Latest published semver tag found: $latest_tag"
               break
             fi
-          
+
             ((page+=1))
           done
-          
+
           if [[ "$latest_tag" == "not_found" ]]; then
             echo "::warning ::No valid semver published release tag found, using v0.0.0"
             echo "latest_tag=v0.0.0" >> $GITHUB_OUTPUT
@@ -65,7 +87,7 @@ runs:
       run: |
         LATEST="${{ steps.get_tag.outputs.latest_tag }}"
         TAG_INPUT="${{ inputs.tag }}"
-        
+
         if [[ -n "$TAG_INPUT" ]]; then
           echo "selected_tag=$TAG_INPUT" >> $GITHUB_OUTPUT
           echo "::notice ::Using provided tag: $TAG_INPUT"

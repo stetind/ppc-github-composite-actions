@@ -1,11 +1,26 @@
+# ------------------------------------------------------------------------------
+# Composite Action: Final Summary
+#
+# This action generates a final summary of the release process, displaying
+# important information about the release such as the tag, release type
+# (production or pre-release), and the URL to the GitHub release.
+#
+# Inputs:
+# - version: The version tag of the release (e.g., v1.2.3)
+# - prerelease: The pre-release identifier, if applicable (empty for production releases)
+# ------------------------------------------------------------------------------
+
 name: Final Summary
+description: Generates a final summary of the release process
 
 inputs:
   version:
     required: true
+    description: 'The version tag of the release (e.g., v1.2.3)'
   prerelease:
     required: false
     default: ""
+    description: 'The pre-release identifier, if applicable (empty for production releases)'
 
 runs:
   using: composite

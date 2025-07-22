@@ -1,35 +1,98 @@
+# ------------------------------------------------------------------------------
+# Composite Action: Detect Version Bump
+#
+# This action analyzes commit messages (following Conventional Commits format)
+# since a given Git tag, and determines the appropriate semantic version bump:
+# - `major` if there's a breaking change or `!` notation
+# - `minor` for `feat` commits
+# - `patch` for `fix` commits
+#
+# It computes a new version based on the provided previous tag, assuming it
+# follows semantic versioning (`vX.Y.Z`). If no tag is provided or it's empty,
+# it assumes version 0.0.0.
+#
+# The action is split into multiple steps:
+# 1. Process commits input - Processes the input into text format
+# 2. Parse current version - Extracts version components from the tag
+# 3. Analyze commits - Determines the bump type based on commit messages
+# 4. Compute new version - Calculates the new version based on the bump type
+#
+# Inputs:
+# - tag: The previous tag in `vX.Y.Z` format (e.g. v1.2.3)
+# - commits: String containing commit messages to process (subject§body format with escaped pipe and section sign characters)
+#
+# Outputs:
+# - bump: The detected version bump type (`major`, `minor`, `patch`, or none)
+# - new_version: The computed version string (with a `v` prefix)
+# - commits: The processed commit messages in text format (can be used by other actions)
+# ------------------------------------------------------------------------------
+
 name: Detect Version Bump
 description: Compute new version based on conventional commits
 
 inputs:
   tag:
     required: true
+    description: 'The previous tag in vX.Y.Z format (e.g. v1.2.3)'
   commits:
     required: true
+    description: 'String containing commit messages to process (subject§body format with escaped pipe and section sign characters)'
 outputs:
+  bump:
+    description: Type of version bump (major, minor, patch, or none)
+    value: ${{ steps.analyze-commits.outputs.bump }}
   new_version:
     description: "The computed new version"
-    value: ${{ steps.bump.outputs.new_version }}
+    value: ${{ steps.compute-version.outputs.new_version }}
+  commits:
+    description: "The parsed commit messages in text format"
+    value: ${{ steps.check.outputs.commits }}
 
 runs:
   using: "composite"
   steps:
-    - name: Compute new version
-      id: bump
+    - name: Parse current version
+      id: parse-version
       shell: bash
       run: |
+        echo "::notice ::Parsing current version from tag"
         current_version="${{ inputs.tag }}"
         current_version="${current_version#v}"
         if [[ -z "$current_version" ]]; then
           current_version="0.0.0"
+          echo "::notice ::No tag provided, assuming version 0.0.0"
+        else
+          echo "::notice ::Current version: $current_version"
         fi
 
         IFS='.' read -r major minor patch <<< "$current_version"
 
-        if [[ "$current_version" != "0.0.0" ]]; then
-          commits=$(git log "v${current_version}"..HEAD --pretty=format:"%s%n%b")
+        echo "current_version=$current_version" >> $GITHUB_OUTPUT
+        echo "major=$major" >> $GITHUB_OUTPUT
+        echo "minor=$minor" >> $GITHUB_OUTPUT
+        echo "patch=$patch" >> $GITHUB_OUTPUT
+
+
+    - name: Analyze commits
+      id: analyze-commits
+      shell: bash
+      run: |
+        echo "::notice ::Analyzing commits for version bump type"
+        current_version="${{ steps.parse-version.outputs.current_version }}"
+
+        # Use parsed commits from previous step or retrieve from git if not available
+        if [[ -z "${{ inputs.commits }}" ]]; then
+          echo "::notice ::No parsed commits available, retrieving from git"
+          if [[ "$current_version" != "0.0.0" ]]; then
+            commits=$(git log "v${current_version}"..HEAD --pretty=format:"%s%n%b")
+            echo "::notice ::Retrieved commits since v${current_version}"
+          else
+            commits=$(git log HEAD --pretty=format:"%s%n%b")
+            echo "::notice ::Retrieved all commits (no previous version)"
+          fi
         else
-          commits=$(git log HEAD --pretty=format:"%s%n%b")
+          commits="${{ inputs.commits }}"
+          echo "::notice ::Using parsed commits from previous step"
         fi
 
         bump_major=0
@@ -42,6 +105,7 @@ runs:
             type=$(echo "$line" | sed -E 's/^([a-z]+).*/\1/')
             if [[ "$line" =~ "!" ]]; then
               bump_major=1
+              echo "::notice ::Found breaking change: $line"
             elif [[ "$type" == "feat" ]]; then
               bump_minor=1
             elif [[ "$type" == "fix" ]]; then
@@ -49,15 +113,51 @@ runs:
             fi
           elif [[ "$line" =~ BREAKING[[:space:]]CHANGE ]]; then
             bump_major=1
+            echo "::notice ::Found BREAKING CHANGE: $line"
           fi
-        done <<< "${{ inputs.commits }}"
+        done <<< "$commits"
+
+        if [[ "$bump_major" == 1 ]]; then
+          bump_type="major"
+        elif [[ "$bump_minor" == 1 ]]; then
+          bump_type="minor"
+        elif [[ "$bump_patch" == 1 ]]; then
+          bump_type="patch"
+        else
+          bump_type="none"
+        fi
+
+        echo "::notice ::Detected bump type: $bump_type"
+        echo "bump=$bump_type" >> $GITHUB_OUTPUT
+        echo "bump_major=$bump_major" >> $GITHUB_OUTPUT
+        echo "bump_minor=$bump_minor" >> $GITHUB_OUTPUT
+        echo "bump_patch=$bump_patch" >> $GITHUB_OUTPUT
+
+
+    - name: Compute new version
+      id: compute-version
+      shell: bash
+      run: |
+        echo "::notice ::Computing new version based on bump type"
+        major="${{ steps.parse-version.outputs.major }}"
+        minor="${{ steps.parse-version.outputs.minor }}"
+        patch="${{ steps.parse-version.outputs.patch }}"
+        current_version="${{ steps.parse-version.outputs.current_version }}"
+
+        bump_type="${{ steps.analyze-commits.outputs.bump }}"
+        bump_major="${{ steps.analyze-commits.outputs.bump_major }}"
+        bump_minor="${{ steps.analyze-commits.outputs.bump_minor }}"
+        bump_patch="${{ steps.analyze-commits.outputs.bump_patch }}"
 
         if [[ "$bump_major" == 1 ]]; then
           new_version="$((major + 1)).0.0"
+          echo "::notice ::Major version bump: $current_version -> $new_version"
         elif [[ "$bump_minor" == 1 ]]; then
           new_version="$major.$((minor + 1)).0"
+          echo "::notice ::Minor version bump: $current_version -> $new_version"
         elif [[ "$bump_patch" == 1 ]]; then
           new_version="$major.$minor.$((patch + 1))"
+          echo "::notice ::Patch version bump: $current_version -> $new_version"
         else
           echo "::warning ::No version bump rule matched. Keeping current version: $current_version"
           new_version="$current_version"

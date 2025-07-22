@@ -1,0 +1,71 @@
+# ------------------------------------------------------------------------------
+# Composite Action: intall-global-dependencies
+#
+# This action installs global NPM dependencies and configures NPM with the 
+# provided authentication token. It also performs a local npm install with
+# options based on whether it's a production or development environment.
+#
+# This action is useful as a prerequisite for any workflow that requires
+# specific global NPM packages and proper NPM authentication setup.
+#
+# Behavior:
+# - Sets up NPM token for authentication
+# - Installs specified global NPM dependencies
+# - Performs either a production or development npm install based on input
+#
+# Output:
+# - Global NPM dependencies will be available for subsequent steps
+# - NPM authentication will be configured
+# - Local dependencies will be installed
+# ------------------------------------------------------------------------------
+
+name: '🔧 Global Dependencies'
+
+inputs:
+  npm_token:
+    description: 'NPM authentication token used for accessing private packages and configuring NPM registry'
+    required: true
+  production:
+    description: 'When set to "true", performs a production install (--omit=dev). Otherwise, installs all dependencies.'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: 🔧 Setup Npm Token
+      shell: bash
+      run: |
+        npm config set //registry.npmjs.org/:_authToken ${{ inputs.npm_token }} &&
+        echo "//registry.npmjs.org/:_authToken=${{ inputs.npm_token }}" > ./.npmrc &&
+        cp ./.npmrc ~/.npmrc
+
+    - name: 'Install Global Dependencies'
+      shell: bash
+      run: |
+        npm install -g \
+        rimraf@5.0.7 \
+        npm@11.2.0 \
+        npm-check-updates@16.14.20 \
+        typescript@5.8.2 \
+        dotenv@16.4.7 \
+        dotenv-cli@8.0.0 \
+        ts-node@10.9.2 \
+        cross-env@7.0.3 \
+        esbuild@0.25.2 \
+        esbuild-node-externals@1.18.0
+
+    - name: Debug Production Input
+      shell: bash
+      run: |
+        echo "Production input value: >${{ inputs.production }}< Type: $(echo "${{ inputs.production }}" | awk '{print typeof($0)}')"
+
+    - name: Npm Install (Only Prod)
+      if: ${{ inputs.production == 'true' }}
+      run: npm ci --ignore-scripts --omit=dev
+      shell: bash
+
+    - name: Npm Install
+      if: ${{ inputs.production != 'true' }}
+      run: npm ci --ignore-scripts
+      shell: bash

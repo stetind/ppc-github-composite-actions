@@ -1,18 +1,44 @@
+# ------------------------------------------------------------------------------
+# Composite Action: Create GitHub Release
+#
+# This action creates a GitHub release using the `softprops/action-gh-release`
+# action. It tags a specific commit (usually a branch head), attaches release
+# notes, and marks it as a draft or prerelease if needed.
+#
+# Use this action after computing a new version and generating a changelog.
+#
+# Inputs:
+# - version: The tag name to create (e.g., v1.3.0)
+# - changelog: The Markdown body content of the release notes
+# - prerelease: Optional; whether this is a prerelease (true/false)
+# - target_branch: The branch or commit to tag as the release (e.g., main)
+# - draft: Optional; whether to save as a draft release (true/false)
+#
+# Dependencies:
+# - Requires GITHUB_TOKEN (automatically available in GitHub-hosted runners)
+# ------------------------------------------------------------------------------
+
 name: Create GitHub Release
+description: 'Creates a GitHub release with tag, changelog, and optional prerelease/draft flags.'
 
 inputs:
   version:
     required: true
+    description: 'The version tag name to create (e.g., v1.2.3).'
   changelog:
     required: true
+    description: 'The body of the release notes in Markdown format.'
   prerelease:
     required: false
     default: "false"
+    description: 'Set to "true" if this should be marked as a prerelease.'
   target_branch:
     required: true
+    description: 'The branch or commit SHA that the tag should point to.'
   draft:
     required: false
     default: "false"
+    description: 'Set to "true" if this should be created as a draft release.'
 
 runs:
   using: composite

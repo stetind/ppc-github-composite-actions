@@ -1,0 +1,29 @@
+# ------------------------------------------------------------------------------
+# Composite Action: check-install-gh
+#
+# This action ensures the GitHub CLI (`gh`) is available on the runner.
+# If not found, it installs the GitHub CLI using apt package manager.
+#
+# Supported package managers:
+# - apt (Ubuntu/Debian)
+#
+# This action is useful as a prerequisite for any step or action that interacts
+# with GitHub repositories, issues, pull requests, or releases through the
+# command line.
+#
+# Behavior:
+# - Installs GitHub CLI (gh) using apt
+#
+# Output:
+# - GitHub CLI will be available for subsequent steps
+# ------------------------------------------------------------------------------
+
+name: check-install-gh
+description: 'Ensures GitHub CLI (gh) is installed and available on the runner. Installs it if missing.'
+
+runs:
+  using: composite
+  steps:
+    - name: 🔧 Install gh
+      shell: bash
+      run: apt-get update && apt-get install -y -f gh

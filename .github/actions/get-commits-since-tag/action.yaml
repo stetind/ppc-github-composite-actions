@@ -1,3 +1,20 @@
+# ------------------------------------------------------------------------------
+# Composite Action: Get Commits Since Tag
+#
+# This action extracts all commit messages since a specified Git tag.
+# It handles sanitization of commit messages to ensure they can be safely
+# processed in GitHub Actions workflows.
+#
+# The action supports comparing from a specific tag or from the beginning
+# of the repository history (when tag is "0.0.0").
+#
+# Inputs:
+# - tag: Git tag to use as the starting point for commit extraction
+#
+# Outputs:
+# - commits: String containing all commit messages (subject§body format with escaped pipe and section sign characters)
+# ------------------------------------------------------------------------------
+
 name: Get Commits Since Tag
 
 description: Extract commits since given tag
@@ -5,11 +22,11 @@ description: Extract commits since given tag
 inputs:
   tag:
     required: true
-    description: Git tag to compare from
+    description: Git tag to use as the starting point for commit extraction (use "0.0.0" to include all commits)
 
 outputs:
   commits:
-    description: Commit messages
+    description: A multiline string of all commit messages since the specified tag.
     value: ${{ steps.commits.outputs.commits }}
 
 runs:
