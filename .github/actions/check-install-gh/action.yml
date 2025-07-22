@@ -24,6 +24,34 @@ description: 'Ensures GitHub CLI (gh) is installed and available on the runner. 
 runs:
   using: composite
   steps:
-    - name: 🔧 Install gh
+    - name: Check and install gh
+      id: check_gh
       shell: bash
-      run: apt-get update && apt-get install -y -f gh
+      run: |
+        set -e
+        echo "::notice::🔍 Checking for gh installation..."
+
+        if ! command -v gh &> /dev/null; then
+          echo "::notice::📦 gh not found. Installing..."
+
+          if command -v apt-get &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y -f gh || apt-get update && apt-get install -y -f gh
+          elif command -v yum &> /dev/null; then
+            sudo yum install -y gh || yum install -y gh
+          elif command -v apk &> /dev/null; then
+            apk add --no-cache gh
+          elif command -v brew &> /dev/null; then
+            brew install gh
+          else
+            echo "::error::Unable to install gh. No supported package manager found."
+            exit 1
+          fi
+
+          echo "::notice::✅ gh installed successfully"
+        else
+          echo "::notice::✅ gh is already installed"
+        fi
+
+        # Verify gh version
+        JQ_VERSION=$(gh --version)
+        echo "::notice::📊 Using $gh_VERSION"
