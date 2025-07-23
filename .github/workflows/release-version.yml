@@ -1,10 +1,5 @@
 name: 🚀 Release Version
-run-name: 🎯 Release v${{ inputs.version }} ${{ 
-  inputs.merge_option == 'none' && '' ||
-  inputs.merge_option == 'merge' && '+ merge' ||
-  inputs.merge_option == 'merge and delete' && '+ merge & cleanup' ||
-  '+ ' + inputs.merge_option
-}}
+run-name: 🎯 Release v${{ inputs.version }} ${{ inputs.merge_option == 'none' && '' || inputs.merge_option == 'merge' && '+ merge' || '+ merge & cleanup' }}
 
 on:
   workflow_dispatch:
