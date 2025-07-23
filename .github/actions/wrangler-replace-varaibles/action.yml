@@ -1,0 +1,112 @@
+# GitHub Action: Create Wrangler Configuration
+#
+# This action generates a Wrangler configuration file by processing a template
+# and injecting environment variables and secrets:
+# 1. Processes wrangler.template.temp file
+# 2. Replaces variables with format $ENV_*, $VARS_*, $ACCOUNT_ID
+# 3. Handles secrets with $SECRET_* format
+# 4. Creates final wrangler.toml configuration
+#
+# Features:
+# - Template-based configuration generation
+# - Supports environment variables and secrets injection
+# - Handles Cloudflare specific variables (ACCOUNT_ID)
+# - Provides output for secret variables used
+#
+# Example usage:
+# ```yaml
+# - uses: your-org/create-wrangler-config@v1
+#   with:
+#     secrets: ${{ toJSON(secrets) }}
+#     variables: '{"ENV_API_URL": "https://api.example.com"}'
+# ```
+
+name: create-wrangler-config
+description: Creates a Wrangler configuration file from template with environment variables and secrets
+inputs:
+  variable_pattern:
+    required: false
+    description: 'Regular expression pattern for filtering environment variables'
+    default: ^[A-Za-z].*
+  secrets:
+    required: false
+    description: 'JSON object containing secrets to be injected into the configuration'
+    default: "{}"
+  variables:
+    required: false
+    description: 'JSON object containing variables to be injected into the configuration'
+    default: "{}"
+
+outputs:
+  wrangler_secrets:
+    description: 'List of secret variables used in the Wrangler configuration'
+    value: ${{ steps.prepare.outputs.wrangler_secrets }}
+
+runs:
+  using: composite
+  steps:
+    - name: 🔧 Install Jq
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@__VERSION__
+
+    - name: 🔧 Prepare wrangler environment variables
+      shell: bash
+      run: |
+        declare -A obj
+        echo '${{ inputs.secrets }}' > /workspace/.secrets_json
+        echo '${{ inputs.variables }}' > /workspace/.vars_json
+
+        while read -r key value; do
+          obj[$key]=$value
+        done <<< $(jq -r 'to_entries[] | "\(.key) \(.value)"' /workspace/.secrets_json)
+
+        while read -r key value; do
+          obj[$key]=$value
+        done <<< $(jq -r 'to_entries[] | "\(.key) \(.value)"' /workspace/.vars_json)
+
+        filename="wrangler.template.temp"
+
+        for var_name in $(egrep -ohi '(\$(((ENV|VARS)_[A-Z_0-9]+)|(ACCOUNT_ID)))' ${filename} | cut -c 2-)
+        do
+          pattern='$'${var_name}
+          replacement=${obj[${var_name}]}
+
+          escaped_pattern=$(echo "$pattern" | sed 's/[][\\/\\.^$*+?(){}|]/\\&/g')
+          escaped_replacement=$(echo "$replacement" | sed 's/[][\\/\\.^$*+?(){}|]/\\&/g')
+          sed_pattern="s/${escaped_pattern}/${escaped_replacement}/g"
+
+          sed -i "$sed_pattern" ${filename}
+        done
+
+    - name: 🔧 Create wrangler file
+      shell: bash
+      run: cp wrangler.template.temp wrangler.toml
+
+    - name: Prepare Secret Variables
+      id: prepare
+      shell: bash
+      run: |
+        declare -A obj
+        secret_variable_filename=/workspace/.secrets_variables
+        touch $secret_variable_filename
+        while read -r key value; do
+          obj[$key]=$value
+        done <<< $(jq -r 'to_entries[] | "\(.key) \(.value)"' /workspace/.secrets_json)
+
+        filename="wrangler.toml"
+        for var_name in $(egrep -ohi '(\$SECRET_([A-Z_0-9]+))' ${filename} | cut -c 2-)
+        do
+          key=${var_name#"SECRET_"}
+          echo ${key} >> $secret_variable_filename
+          echo "${key}=${obj[${key}]}" >> $GITHUB_ENV
+        done
+
+        if [[ -s $secret_variable_filename ]];
+          echo "wrangler_secrets=''" >> $GITHUB_OUTPUT
+        then
+          secret_variables=$(cat $secret_variable_filename)
+          
+          echo "wrangler_secrets<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$secret_variables" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        
+        fi
