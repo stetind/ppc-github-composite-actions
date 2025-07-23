@@ -68,21 +68,33 @@ runs:
       id: create_pr
       shell: bash
       if: inputs.merge_option != 'none'
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        PR_TITLE: ${{ inputs.title }}
       run: |
-        PR_URL=$(gh pr create \
-          --base ${{ inputs.target }} \
-          --head ${{ inputs.source }} \
-          --title "${{ inputs.title }}" \
-          --body "This PR contains changes for ${{ inputs.title }}" \
-          --label "release" \
-          --label "automated pr" \
-          || echo "PR_FAILED")
-
-        if [ "$PR_URL" != "PR_FAILED" ]; then
-          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
-          echo "::notice::Pull request created successfully: $PR_URL"
+        # First check if PR already exists
+        EXISTING_PR=$(gh pr list --head "${{ inputs.source }}" --base "${{ inputs.target }}" --json url --jq '.[0].url')
+        
+        if [ -n "$EXISTING_PR" ]; then
+          echo "::notice::Using existing pull request: $EXISTING_PR"
+          echo "pr_url=$EXISTING_PR" >> $GITHUB_OUTPUT
         else
-          echo "::warning::Pull request already exists or couldn't be created"
+          # Create new PR if none exists
+          PR_URL=$(gh pr create \
+            --base "${{ inputs.target }}" \
+            --head "${{ inputs.source }}" \
+            --title "${PR_TITLE}" \
+            --body "This PR contains changes for ${PR_TITLE}" \
+            --label "release" \
+            --label "automated pr")
+        
+          if [ $? -eq 0 ]; then
+            echo "::notice::Pull request created successfully: $PR_URL"
+            echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          else
+            echo "::error::Failed to create pull request"
+            exit 1
+          fi
         fi
 
     - name: 🔀 Merge Pull Request
