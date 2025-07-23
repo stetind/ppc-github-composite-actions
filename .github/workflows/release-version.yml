@@ -129,6 +129,7 @@ jobs:
             uses: stetind/ppc-github-composite-actions/.github/actions/action-name@${{ github.event.inputs.version }}
             ```
           draft: false
+          target_commitish: ${{ github.ref_name }}
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
