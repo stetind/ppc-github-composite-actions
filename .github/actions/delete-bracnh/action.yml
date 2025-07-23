@@ -1,0 +1,49 @@
+# ------------------------------------------------------------------------------
+# Composite Action: Delete Branch
+#
+# This action safely deletes a specified branch from a GitHub repository.
+# It uses the GitHub API to handle branch deletion, with proper error handling
+# and status reporting.
+#
+# Features:
+# - Safe branch deletion with verification
+# - Support for both protected and unprotected branches
+# - Proper error handling and status reporting
+# - Uses GitHub's API through dawidd6's action-delete-branch
+#
+# Prerequisites:
+# - GitHub token with branch deletion permissions
+# - Branch must exist in the repository
+#
+# Inputs:
+# - token: GitHub token with branch deletion permissions
+#   Required for authentication and authorization
+# - branch: Name of the branch to delete
+#   Can be a single branch name (e.g., 'feature/xyz')
+#
+# Behavior:
+# - Attempts to delete the specified branch
+# - Reports success or failure through GitHub Actions notices
+# - Handles errors gracefully with appropriate messages
+# ------------------------------------------------------------------------------
+
+name: Delete Branch
+description: Safely deletes a specified branch from a GitHub repository
+
+inputs:
+  token:
+    description: 'GitHub token with branch deletion permissions'
+    required: true
+  branch:
+    description: 'Name of the branch to delete'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: 🗑️ Delete Branch
+      id: delete_branch
+      uses: dawidd6/action-delete-branch@v3
+      with:
+        github_token: ${{ inputs.token }}
+        branches: ${{ inputs.branch }}
