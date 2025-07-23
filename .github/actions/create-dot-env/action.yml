@@ -1,0 +1,74 @@
+# GitHub Action: Create .env File
+#
+# This action generates a .env file by combining multiple sources of environment variables:
+# 1. Existing environment variables (filtered by pattern)
+# 2. GitHub Secrets
+# 3. Additional custom variables
+#
+# Features:
+# - Supports regex pattern filtering for environment variables
+# - Securely handles GitHub Secrets
+# - Allows custom variable injection
+# - Creates/updates .env file in specified directory
+#
+# Example usage:
+# ```yaml
+# - uses: your-org/create-dot-env@v1
+#   with:
+#     variable_pattern: '^APP_.*'
+#     secrets: ${{ toJSON(secrets) }}
+#     variables: '{"CUSTOM_VAR": "value"}'
+#     volume: '/custom/path'
+# ```
+name: create-dot-env
+description: Creates a .env file by combining environment variables, secrets, and additional variables
+inputs:
+  variable_pattern:
+    required: false
+    description: 'Regular expression pattern to filter environment variables. Only variables matching this pattern will be included in the .env file'
+    default: ^[A-Za-z].*
+    secrets:
+      required: false
+      description: 'JSON object containing secret key-value pairs to be included in the .env file'
+      default: "{}"
+    volume:
+      required: false
+      description: 'Target directory path where the .env file will be created'
+      default: "/workspace"
+    variables:
+      required: false
+      description: 'JSON object containing additional variables to append to the .env file'
+      default: "{}"
+
+runs:
+  using: composite
+  steps:
+    - name: 🔧 Install Jq
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@__VERSION__
+
+    - name: 🔧 Secret to Environment
+      uses: oNaiPs/secrets-to-env-action@v1.5
+      with:
+        secrets: ${{ inputs.secrets }}
+
+    - name: 📓 Fill [dot] Env (Generic)
+      uses: CallePuzzle/envvar-to-dotenv-action@v1.2.4
+      with:
+        variableNamesByFilter: ${{ inputs.variable_pattern }}
+
+    - name: 🔧 Vars to Environment
+      shell: bash
+      run: |
+        declare -A obj
+        echo '${{ inputs.variables }}' > ${{ inputs.volume }}/.vars_json
+
+        while read -r key value; do
+          obj[$key]=$value
+        done <<< $(jq -r 'to_entries[] | "\(.key) \(.value)"' ${{ inputs.volume }}/.vars_json)
+
+        echo '' >> ${{ inputs.volume }}/.env
+
+        for key in "${!obj[@]}"; do
+          value=${obj[$key]}
+          echo "$key=${obj[$key]}" >> ${{ inputs.volume }}/.env
+        done
