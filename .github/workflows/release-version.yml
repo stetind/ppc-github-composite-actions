@@ -1,0 +1,339 @@
+name: Release Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+      merge_option:
+        description: 'Merge and cleanup option'
+        required: false
+        type: choice
+        default: 'merge and delete'
+        options:
+          - 'merge and delete'
+          - 'merge'
+          - 'none'
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Create release branch
+        run: |
+          RELEASE_BRANCH="release/${{ github.event.inputs.version }}"
+          git checkout -b $RELEASE_BRANCH
+          echo "RELEASE_BRANCH=$RELEASE_BRANCH" >> $GITHUB_ENV
+          echo "::notice::Created release branch: $RELEASE_BRANCH"
+
+      - name: Find and replace __VERSION__ in all action files
+        run: |
+          echo "::notice::Searching for __VERSION__ placeholders in action files..."
+
+          # Check if actions directory exists
+          if [ ! -d ".github/actions" ]; then
+            echo "::error::Actions directory (.github/actions) not found!"
+            exit 1
+          fi
+
+          # Count action files before proceeding
+          ACTION_FILES=$(find .github/actions -type f -name "*.yml" -o -name "*.yaml" | wc -l)
+          if [ "$ACTION_FILES" -eq 0 ]; then
+            echo "::warning::No action files (*.yml, *.yaml) found in .github/actions directory."
+            exit 0
+          fi
+
+          echo "::notice::Found $ACTION_FILES action files to process."
+
+          # Perform the replacement
+          if ! find .github/actions -type f -name "*.yml" -o -name "*.yaml" | xargs sed -i "s/__VERSION__/${{ github.event.inputs.version }}/g"; then
+            echo "::error::Failed to replace __VERSION__ placeholders. Check for file permissions or other issues."
+            exit 1
+          fi
+
+          # Check if any changes were made
+          if [[ -z $(git status -s) ]]; then
+            echo "::warning::No __VERSION__ placeholders found to replace. No changes were made."
+            exit 0
+          else
+            CHANGED_FILES=$(git status -s | wc -l)
+            echo "::notice::Successfully replaced __VERSION__ placeholders in $CHANGED_FILES files."
+          fi
+
+      - name: Commit changes
+        run: |
+          echo "::notice::Committing changes to repository..."
+          git add .
+          if ! git commit -m "Update version to ${{ github.event.inputs.version }}"; then
+            echo "::error::Failed to commit changes. This might happen if there are no changes to commit."
+            exit 1
+          fi
+          echo "::notice::Changes committed successfully."
+
+      - name: Push release branch
+        run: |
+          echo "::notice::Pushing branch ${{ env.RELEASE_BRANCH }} to remote repository..."
+          if ! git push origin ${{ env.RELEASE_BRANCH }}; then
+            echo "::error::Failed to push branch ${{ env.RELEASE_BRANCH }} to remote repository."
+            exit 1
+          fi
+          echo "::notice::Branch pushed successfully."
+
+  create-release:
+    needs: update-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ format('release/{0}', github.event.inputs.version) }}
+
+      - name: Log release creation
+        run: |
+          echo "::notice::Creating GitHub release for version ${{ github.event.inputs.version }}..."
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: softprops/action-gh-release@v2.3.2
+        with:
+          tag_name: ${{ github.event.inputs.version }}
+          name: Release ${{ github.event.inputs.version }}
+          body: |
+            # Release ${{ github.event.inputs.version }}
+
+            This release updates all composite actions to version ${{ github.event.inputs.version }}.
+
+            ## Usage
+
+            To use these actions with a specific version, update your workflow files to reference:
+
+            ```yaml
+            uses: stetind/ppc-github-composite-actions/.github/actions/action-name@${{ github.event.inputs.version }}
+            ```
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log release completion
+        if: success()
+        run: |
+          echo "::notice::GitHub release ${{ github.event.inputs.version }} created successfully!"
+          echo "::notice::Release URL: ${{ steps.create_release.outputs.url }}"
+
+      - name: Handle release failure
+        if: failure()
+        run: |
+          echo "::error::Failed to create GitHub release for version ${{ github.event.inputs.version }}."
+          echo "::error::Please check if the tag already exists or if there are permission issues."
+
+  merge-and-cleanup:
+    needs: create-release
+    runs-on: ubuntu-latest
+    if: github.event.inputs.merge_option != 'none'
+    outputs:
+      protected_branches: ${{ steps.set_output.outputs.protected_branches }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Merge source branch into main
+        run: |
+          echo "::notice::Merging source branch into main..."
+          SOURCE_BRANCH="${{ github.ref_name }}"
+          RELEASE_BRANCH="release/${{ github.event.inputs.version }}"
+
+          # Checkout main branch
+          git checkout main
+
+          # Pull latest changes from main
+          if ! git pull origin main; then
+            echo "::error::Failed to pull latest changes from main branch."
+            exit 1
+          fi
+
+          # Fetch the source branch
+          if ! git fetch origin $SOURCE_BRANCH; then
+            echo "::error::Failed to fetch source branch $SOURCE_BRANCH."
+            exit 1
+          fi
+
+          # Merge source branch into main
+          if ! git merge origin/$SOURCE_BRANCH --no-ff -m "Merge $SOURCE_BRANCH into main for release ${{ github.event.inputs.version }}"; then
+            echo "::error::Failed to merge $SOURCE_BRANCH into main. There might be conflicts."
+            exit 1
+          fi
+
+          # Push changes to main
+          if ! git push origin main; then
+            echo "::error::Failed to push changes to main branch."
+            exit 1
+          fi
+
+          echo "::notice::Successfully merged $SOURCE_BRANCH into main."
+
+      - name: Delete branches
+        if: github.event.inputs.merge_option == 'merge and delete'
+        run: |
+          RELEASE_BRANCH="release/${{ github.event.inputs.version }}"
+          SOURCE_BRANCH="${{ github.ref_name }}"
+          BRANCH_TO_DELETE="release/${{ github.event.inputs.version }}"
+          REPO="${{ github.repository }}"
+
+          # Create a file to store protected branch information for the summary
+          touch protected_branches.txt
+
+          # Function to check if a branch is protected
+          is_branch_protected() {
+            local branch=$1
+            local status_code=$(curl -s -o /dev/null -w "%{http_code}" \
+              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -H "Accept: application/vnd.github.v3+json" \
+              "https://api.github.com/repos/$REPO/branches/$branch/protection")
+
+            if [[ "$status_code" == "200" ]]; then
+              return 0  # Branch is protected
+            else
+              return 1  # Branch is not protected
+            fi
+          }
+
+          # Delete release branch
+          echo "::notice::Checking if release branch '$RELEASE_BRANCH' is protected..."
+          if is_branch_protected "$RELEASE_BRANCH"; then
+            echo "::warning::Branch '$RELEASE_BRANCH' is protected and will not be deleted."
+            echo "$RELEASE_BRANCH" >> protected_branches.txt
+          else
+            echo "::notice::Deleting release branch: $RELEASE_BRANCH..."
+            if ! git push origin --delete $RELEASE_BRANCH; then
+              echo "::warning::Failed to delete release branch $RELEASE_BRANCH. It might have been already deleted."
+            else
+              echo "::notice::Successfully deleted release branch: $RELEASE_BRANCH"
+            fi
+          fi
+
+          # Delete source branch if it's not main and not the same as branch_to_delete
+          if [[ "$SOURCE_BRANCH" != "main" && "$SOURCE_BRANCH" != "$BRANCH_TO_DELETE" ]]; then
+            echo "::notice::Checking if source branch '$SOURCE_BRANCH' is protected..."
+            if is_branch_protected "$SOURCE_BRANCH"; then
+              echo "::warning::Branch '$SOURCE_BRANCH' is protected and will not be deleted."
+              echo "$SOURCE_BRANCH" >> protected_branches.txt
+            else
+              echo "::notice::Deleting source branch: $SOURCE_BRANCH..."
+              if ! git push origin --delete $SOURCE_BRANCH; then
+                echo "::warning::Failed to delete source branch $SOURCE_BRANCH. It might have been already deleted or doesn't exist."
+              else
+                echo "::notice::Successfully deleted source branch: $SOURCE_BRANCH"
+              fi
+            fi
+          fi
+
+          # If an additional branch to delete was specified and it's not main, delete it too
+          if [[ -n "$BRANCH_TO_DELETE" && "$BRANCH_TO_DELETE" != "main" && "$BRANCH_TO_DELETE" != "$RELEASE_BRANCH" ]]; then
+            echo "::notice::Checking if branch '$BRANCH_TO_DELETE' is protected..."
+            if is_branch_protected "$BRANCH_TO_DELETE"; then
+              echo "::warning::Branch '$BRANCH_TO_DELETE' is protected and will not be deleted."
+              echo "$BRANCH_TO_DELETE" >> protected_branches.txt
+            else
+              echo "::notice::Deleting additional branch: $BRANCH_TO_DELETE..."
+              if ! git push origin --delete $BRANCH_TO_DELETE; then
+                echo "::warning::Failed to delete branch $BRANCH_TO_DELETE. It might have been already deleted or doesn't exist."
+              else
+                echo "::notice::Successfully deleted branch: $BRANCH_TO_DELETE"
+              fi
+            fi
+          fi
+
+      - name: Set output
+        id: set_output
+        run: |
+          if [[ -s protected_branches.txt ]]; then
+            PROTECTED_BRANCHES=$(cat protected_branches.txt | tr '\n' ',' | sed 's/,$//')
+            echo "protected_branches=$PROTECTED_BRANCHES" >> $GITHUB_OUTPUT
+          else
+            echo "protected_branches=" >> $GITHUB_OUTPUT
+          fi
+
+  workflow-summary:
+    needs: [update-version, create-release, merge-and-cleanup]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Workflow Summary
+        run: |
+          SOURCE_BRANCH="${{ github.ref_name }}"
+          BRANCH_TO_DELETE="release/${{ github.event.inputs.version }}"
+
+          # Check if all required jobs were successful
+          # For merge-and-cleanup, only check if it was supposed to run (merge_option != none)
+          MERGE_SUCCESS=true
+          if [[ "${{ github.event.inputs.merge_option }}" != "none" ]]; then
+            if [[ "${{ needs.merge-and-cleanup.result }}" != "success" ]]; then
+              MERGE_SUCCESS=false
+            fi
+          fi
+
+          if [[ "${{ needs.update-version.result }}" == "success" && "${{ needs.create-release.result }}" == "success" && "$MERGE_SUCCESS" == "true" ]]; then
+            echo "::notice::✅ Workflow completed successfully!"
+            echo "::notice::✅ Version ${{ github.event.inputs.version }} has been released."
+            echo "::notice::✅ All __VERSION__ placeholders have been updated in the release branch."
+
+            if [[ "${{ github.event.inputs.merge_option }}" == "none" ]]; then
+              echo "::notice::ℹ️ No merge or branch cleanup was performed (merge option: none)."
+            elif [[ "${{ needs.merge-and-cleanup.result }}" == "success" ]]; then
+              if [[ "${{ github.event.inputs.merge_option }}" == "merge and delete" ]]; then
+                echo "::notice::✅ Source branch '$SOURCE_BRANCH' has been merged into main."
+                echo "::notice::✅ Release branch has been deleted."
+
+                if [[ "$SOURCE_BRANCH" != "main" && "$SOURCE_BRANCH" != "$BRANCH_TO_DELETE" ]]; then
+                  echo "::notice::✅ Source branch '$SOURCE_BRANCH' has been deleted."
+                fi
+
+                if [[ -n "$BRANCH_TO_DELETE" ]]; then
+                  echo "::notice::✅ Additional branch '$BRANCH_TO_DELETE' has been deleted."
+                fi
+
+                # Display information about protected branches that were not deleted
+                if [[ -n "${{ needs.merge-and-cleanup.outputs.protected_branches }}" ]]; then
+                  echo "::notice::ℹ️ The following protected branches were not deleted because they are protected: ${{ needs.merge-and-cleanup.outputs.protected_branches }}"
+                fi
+              elif [[ "${{ github.event.inputs.merge_option }}" == "merge" ]]; then
+                echo "::notice::✅ Source branch '$SOURCE_BRANCH' has been merged into main."
+                echo "::notice::ℹ️ Branches were not deleted (merge option: merge only)."
+              fi
+            fi
+          else
+            echo "::error::❌ Workflow did not complete successfully."
+
+            if [[ "${{ needs.update-version.result }}" != "success" ]]; then
+              echo "::error::❌ Failed to update version in files."
+            fi
+
+            if [[ "${{ needs.create-release.result }}" != "success" ]]; then
+              echo "::error::❌ Failed to create GitHub release."
+            fi
+
+            if [[ "${{ github.event.inputs.merge_option }}" != "none" && "${{ needs.merge-and-cleanup.result }}" != "success" ]]; then
+              echo "::error::❌ Failed to merge source branch into main or clean up branches."
+            fi
+
+            echo "::notice::Please check the job logs for more details."
+          fi

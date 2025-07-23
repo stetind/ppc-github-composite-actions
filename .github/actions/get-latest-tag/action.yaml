@@ -38,10 +38,10 @@ runs:
   using: composite
   steps:
     - name: 🔧 Install gh
-      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@main
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
 
     - name: 🔧 Install Jq
-      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@main
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@__VERSION__
 
     - name: 🏷️ Get latest tag
       id: get_tag
