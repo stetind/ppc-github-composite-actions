@@ -106,6 +106,8 @@ runs:
       if: |
         inputs.merge_option != 'none' && 
         steps.create_pr.outputs.pr_url != ''
+      env:
+        GH_TOKEN: ${{ inputs.token }}
       run: |
         PR_NUMBER=$(echo "${{ steps.create_pr.outputs.pr_url }}" | awk -F'/' '{print $NF}')
         DELETE_FLAG=${{ inputs.merge_option == 'merge and delete' }}
