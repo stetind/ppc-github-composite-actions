@@ -65,11 +65,10 @@ runs:
     - name: 🔧 Install GH
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
 
-    - name: 🔄 Create Pull Request
-      id: create_pr
+    - name: Set safe Directory
+      id: safe_dir
       shell: bash
       run: |
-        # Configure git to trust the workspace
         git config --global --add safe.directory "$(pwd)"
 
     - name: 🔄 Create Pull Request
