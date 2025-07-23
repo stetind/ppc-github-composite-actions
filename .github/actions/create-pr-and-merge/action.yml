@@ -1,37 +1,3 @@
-# ------------------------------------------------------------------------------
-# Composite Action: Create PR and Merge
-#
-# This action creates a pull request from a source branch to a target branch,
-# and optionally merges it based on the specified merge option. It supports
-# different merge strategies and branch cleanup options.
-#
-# Features:
-# - Creates pull request with customizable title
-# - Automatically adds release and automation labels
-# - Supports different merge options (none, merge, merge and delete)
-# - Handles branch cleanup after successful merge
-# - Uses GitHub CLI for operations
-#
-# Prerequisites:
-# - GitHub CLI must be installed (handled by check-install-gh action)
-# - Appropriate GitHub token with required permissions
-#
-# Inputs:
-# - token: GitHub token with necessary permissions for PR and merge operations
-# - title: PR title (defaults to "📦 New Release")
-# - merge_option: Strategy for merging and branch cleanup
-#   - 'none': Only create PR without merging
-#   - 'merge': Create PR and merge without branch deletion
-#   - 'merge and delete': Create PR, merge, and delete source branch
-# - target: Target branch for the PR (defaults to 'main')
-# - source: Source branch for the PR
-#
-# Steps:
-# 1. Installs GitHub CLI if not present
-# 2. Creates pull request with specified parameters
-# 3. Merges pull request if merge_option is not 'none'
-# 4. Handles branch cleanup based on merge_option
-# ------------------------------------------------------------------------------
 name: Create PR and Merge
 description: Creates and optionally merges a pull request with support for branch cleanup
 
@@ -112,7 +78,11 @@ runs:
         PR_NUMBER=$(echo "${{ steps.create_pr.outputs.pr_url }}" | awk -F'/' '{print $NF}')
         DELETE_FLAG=${{ inputs.merge_option == 'merge and delete' }}
     
-        if gh pr merge $PR_NUMBER --admin --merge --delete-branch=$DELETE_FLAG; then
+        if gh pr merge $PR_NUMBER \
+          --admin \
+          --merge \
+          --bypass-requirements \
+          --delete-branch=$DELETE_FLAG; then
           echo "::notice::Pull request merged successfully"
         else
           echo "::error::Failed to merge pull request"
