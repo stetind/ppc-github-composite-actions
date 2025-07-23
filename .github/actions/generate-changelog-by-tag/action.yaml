@@ -24,10 +24,10 @@
 # - changelog: Markdown string of the generated changelog
 #
 # Requires:
-# - stetind/ppc-github-composite-actions/.github/actions/get-commits-since-tag@main
-# - stetind/ppc-github-composite-actions/.github/actions/check-should-proceed@main
-# - stetind/ppc-github-composite-actions/.github/actions/detect-version-bump@main
-# - stetind/ppc-github-composite-actions/.github/actions/generate-changelog@main
+# - stetind/ppc-github-composite-actions/.github/actions/get-commits-since-tag@__VERSION__
+# - stetind/ppc-github-composite-actions/.github/actions/check-should-proceed@__VERSION__
+# - stetind/ppc-github-composite-actions/.github/actions/detect-version-bump@__VERSION__
+# - stetind/ppc-github-composite-actions/.github/actions/generate-changelog@__VERSION__
 # ------------------------------------------------------------------------------
 
 name: Generate Changelog
@@ -58,13 +58,13 @@ runs:
   steps:
     - name: 📦 Get commits since selected tag
       id: get_commits
-      uses: stetind/ppc-github-composite-actions/.github/actions/get-commits-since-tag@main
+      uses: stetind/ppc-github-composite-actions/.github/actions/get-commits-since-tag@__VERSION__
       with:
         tag: ${{ inputs.previous_tag }}
 
     - name: 🚨 Check if commits found or force proceed
       id: check_commits
-      uses: stetind/ppc-github-composite-actions/.github/actions/check-should-proceed@main
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-should-proceed@__VERSION__
       with:
         commits: ${{ steps.get_commits.outputs.commits }}
         force: ${{ inputs.force }} 
@@ -72,7 +72,7 @@ runs:
     - name: 🔍 Detect version bump and compute new version
       id: detect_version
       if: inputs.new_tag == ''
-      uses: stetind/ppc-github-composite-actions/.github/actions/detect-version-bump@main
+      uses: stetind/ppc-github-composite-actions/.github/actions/detect-version-bump@__VERSION__
       with:
         commits: ${{ steps.get_commits.outputs.commits }}
         tag: ${{ inputs.previous_tag }}
@@ -90,7 +90,7 @@ runs:
     - name: Generate grouped ChangeLog
       id: log
       if: steps.check_commits.outputs.proceed == 'true'
-      uses: stetind/ppc-github-composite-actions/.github/actions/generate-changelog@main
+      uses: stetind/ppc-github-composite-actions/.github/actions/generate-changelog@__VERSION__
       with:
         commits: ${{ steps.get_commits.outputs.commits }}
         previous_tag: ${{ inputs.previous_tag }}
