@@ -111,7 +111,7 @@ jobs:
           tag_name: ${{ github.event.inputs.version }}
           name: v${{ github.event.inputs.version }}
           body: |
-            # v${{ github.event.inputs.version }}
+            # Release ${{ github.event.inputs.version }}
 
             This release updates all composite actions to version ${{ github.event.inputs.version }}.
 
