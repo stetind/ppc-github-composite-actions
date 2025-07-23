@@ -64,13 +64,13 @@ runs:
   steps:
     - name: 🔧 Install GH
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
+
     - name: 🔄 Create Pull Request
       id: create_pr
       shell: bash
       if: inputs.merge_option != 'none'
       env:
         GH_TOKEN: ${{ inputs.token }}
-        PR_TITLE: ${{ inputs.title }}
       run: |
         # First check if PR already exists
         EXISTING_PR=$(gh pr list --head "${{ inputs.source }}" --base "${{ inputs.target }}" --json url --jq '.[0].url')
@@ -83,8 +83,8 @@ runs:
           PR_URL=$(gh pr create \
             --base "${{ inputs.target }}" \
             --head "${{ inputs.source }}" \
-            --title "${PR_TITLE}" \
-            --body "This PR contains changes for ${PR_TITLE}" \
+            --title "${{ inputs.title }}" \
+            --body "This PR contains changes for ${{ inputs.title }}" \
             --label "release" \
             --label "automated pr")
         
