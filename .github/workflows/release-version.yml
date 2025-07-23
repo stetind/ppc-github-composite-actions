@@ -1,4 +1,12 @@
-name: Release Version
+name: 🚀 Release Version
+run-name: 🎯 Release v${{ inputs.version }} ${{ inputs.merge_option != 'none' && '+ merge' || '' }}
+
+# Run as:
+#   Manual trigger with inputs:
+#   - version: v1.0.0
+#   - merge_option: 'merge and delete' | 'merge' | 'none'
+# Example:
+#   gh workflow run release-version.yml -f version=v1.0.0 -f merge_option='merge and delete'
 
 on:
   workflow_dispatch:
@@ -34,60 +42,60 @@ jobs:
           RELEASE_BRANCH="release/${{ github.event.inputs.version }}"
           git checkout -b $RELEASE_BRANCH
           echo "RELEASE_BRANCH=$RELEASE_BRANCH" >> $GITHUB_ENV
-          echo "::notice::Created release branch: $RELEASE_BRANCH"
+          echo "::notice::🌿 Created release branch: $RELEASE_BRANCH"
 
       - name: Find and replace __VERSION__ in all action files
         run: |
-          echo "::notice::Searching for __VERSION__ placeholders in action files..."
+          echo "::notice::🔍 Searching for __VERSION__ placeholders in action files..."
 
           # Check if actions directory exists
           if [ ! -d ".github/actions" ]; then
-            echo "::error::Actions directory (.github/actions) not found!"
+            echo "::error::❌ Actions directory (.github/actions) not found!"
             exit 1
           fi
 
           # Count action files before proceeding
           ACTION_FILES=$(find .github/actions -type f -name "*.yml" -o -name "*.yaml" | wc -l)
           if [ "$ACTION_FILES" -eq 0 ]; then
-            echo "::warning::No action files (*.yml, *.yaml) found in .github/actions directory."
+            echo "::warning::⚠️ No action files (*.yml, *.yaml) found in .github/actions directory."
             exit 0
           fi
 
-          echo "::notice::Found $ACTION_FILES action files to process."
+          echo "::notice::📄 Found $ACTION_FILES action files to process."
 
           # Perform the replacement
           if ! find .github/actions -type f -name "*.yml" -o -name "*.yaml" | xargs sed -i "s/__VERSION__/${{ github.event.inputs.version }}/g"; then
-            echo "::error::Failed to replace __VERSION__ placeholders. Check for file permissions or other issues."
+            echo "::error::❌ Failed to replace __VERSION__ placeholders. Check for file permissions or other issues."
             exit 1
           fi
 
           # Check if any changes were made
           if [[ -z $(git status -s) ]]; then
-            echo "::warning::No __VERSION__ placeholders found to replace. No changes were made."
+            echo "::warning::⚠️ No __VERSION__ placeholders found to replace. No changes were made."
             exit 0
           else
             CHANGED_FILES=$(git status -s | wc -l)
-            echo "::notice::Successfully replaced __VERSION__ placeholders in $CHANGED_FILES files."
+            echo "::notice::✅ Successfully replaced __VERSION__ placeholders in $CHANGED_FILES files."
           fi
 
       - name: Commit changes
         run: |
-          echo "::notice::Committing changes to repository..."
+          echo "::notice::💾 Committing changes to repository..."
           git add .
           if ! git commit -m "Update version to ${{ github.event.inputs.version }}"; then
-            echo "::error::Failed to commit changes. This might happen if there are no changes to commit."
+            echo "::error::❌ Failed to commit changes. This might happen if there are no changes to commit."
             exit 1
           fi
-          echo "::notice::Changes committed successfully."
+          echo "::notice::✅ Changes committed successfully."
 
       - name: Push release branch
         run: |
-          echo "::notice::Pushing branch ${{ env.RELEASE_BRANCH }} to remote repository..."
+          echo "::notice::⬆️ Pushing branch ${{ env.RELEASE_BRANCH }} to remote repository..."
           if ! git push origin ${{ env.RELEASE_BRANCH }}; then
-            echo "::error::Failed to push branch ${{ env.RELEASE_BRANCH }} to remote repository."
+            echo "::error::❌ Failed to push branch ${{ env.RELEASE_BRANCH }} to remote repository."
             exit 1
           fi
-          echo "::notice::Branch pushed successfully."
+          echo "::notice::✅ Branch pushed successfully."
 
   create-release:
     needs: update-version
@@ -100,16 +108,16 @@ jobs:
 
       - name: Log release creation
         run: |
-          echo "::notice::Creating GitHub release for version ${{ github.event.inputs.version }}..."
+          echo "::notice::📦 Creating GitHub release for version ${{ github.event.inputs.version }}..."
 
       - name: Create GitHub Release
         id: create_release
         uses: softprops/action-gh-release@v2.3.2
         with:
           tag_name: ${{ github.event.inputs.version }}
-          name: Release ${{ github.event.inputs.version }}
+          name: v${{ github.event.inputs.version }}
           body: |
-            # Release ${{ github.event.inputs.version }}
+            # v${{ github.event.inputs.version }}
 
             This release updates all composite actions to version ${{ github.event.inputs.version }}.
 
@@ -128,14 +136,14 @@ jobs:
       - name: Log release completion
         if: success()
         run: |
-          echo "::notice::GitHub release ${{ github.event.inputs.version }} created successfully!"
-          echo "::notice::Release URL: ${{ steps.create_release.outputs.url }}"
+          echo "::notice::🎉 GitHub release v${{ github.event.inputs.version }} created successfully!"
+          echo "::notice::🔗 Release URL: ${{ steps.create_release.outputs.url }}"
 
       - name: Handle release failure
         if: failure()
         run: |
-          echo "::error::Failed to create GitHub release for version ${{ github.event.inputs.version }}."
-          echo "::error::Please check if the tag already exists or if there are permission issues."
+          echo "::error::❌ Failed to create GitHub release for version v${{ github.event.inputs.version }}."
+          echo "::error::🔍 Please check if the tag already exists or if there are permission issues."
 
   merge-and-cleanup:
     needs: create-release
@@ -157,7 +165,7 @@ jobs:
 
       - name: Merge source branch into main
         run: |
-          echo "::notice::Merging source branch into main..."
+          echo "::notice::🔄 Merging source branch into main..."
           SOURCE_BRANCH="${{ github.ref_name }}"
           RELEASE_BRANCH="release/${{ github.event.inputs.version }}"
 
@@ -177,7 +185,7 @@ jobs:
           fi
 
           # Merge source branch into main
-          if ! git merge origin/$SOURCE_BRANCH --no-ff -m "Merge $SOURCE_BRANCH into main for release ${{ github.event.inputs.version }}"; then
+          if ! git merge origin/$SOURCE_BRANCH --no-ff -m "Merge $SOURCE_BRANCH into main for release v${{ github.event.inputs.version }}"; then
             echo "::error::Failed to merge $SOURCE_BRANCH into main. There might be conflicts."
             exit 1
           fi
@@ -188,7 +196,7 @@ jobs:
             exit 1
           fi
 
-          echo "::notice::Successfully merged $SOURCE_BRANCH into main."
+          echo "::notice::✅ Successfully merged $SOURCE_BRANCH into main."
 
       - name: Delete branches
         if: github.event.inputs.merge_option == 'merge and delete'
@@ -217,16 +225,16 @@ jobs:
           }
 
           # Delete release branch
-          echo "::notice::Checking if release branch '$RELEASE_BRANCH' is protected..."
+          echo "::notice::🔍 Checking if release branch '$RELEASE_BRANCH' is protected..."
           if is_branch_protected "$RELEASE_BRANCH"; then
-            echo "::warning::Branch '$RELEASE_BRANCH' is protected and will not be deleted."
+            echo "::warning::🔒 Branch '$RELEASE_BRANCH' is protected and will not be deleted."
             echo "$RELEASE_BRANCH" >> protected_branches.txt
           else
-            echo "::notice::Deleting release branch: $RELEASE_BRANCH..."
+            echo "::notice::🗑️ Deleting release branch: $RELEASE_BRANCH..."
             if ! git push origin --delete $RELEASE_BRANCH; then
-              echo "::warning::Failed to delete release branch $RELEASE_BRANCH. It might have been already deleted."
+              echo "::warning::⚠️ Failed to delete release branch $RELEASE_BRANCH. It might have been already deleted."
             else
-              echo "::notice::Successfully deleted release branch: $RELEASE_BRANCH"
+              echo "::notice::✅ Successfully deleted release branch: $RELEASE_BRANCH"
             fi
           fi
 
@@ -292,8 +300,8 @@ jobs:
           fi
 
           if [[ "${{ needs.update-version.result }}" == "success" && "${{ needs.create-release.result }}" == "success" && "$MERGE_SUCCESS" == "true" ]]; then
-            echo "::notice::✅ Workflow completed successfully!"
-            echo "::notice::✅ Version ${{ github.event.inputs.version }} has been released."
+            echo "::notice::🎉 Workflow completed successfully!"
+            echo "::notice::✨ Version ${{ github.event.inputs.version }} has been released."
             echo "::notice::✅ All __VERSION__ placeholders have been updated in the release branch."
 
             if [[ "${{ github.event.inputs.merge_option }}" == "none" ]]; then
@@ -301,7 +309,7 @@ jobs:
             elif [[ "${{ needs.merge-and-cleanup.result }}" == "success" ]]; then
               if [[ "${{ github.event.inputs.merge_option }}" == "merge and delete" ]]; then
                 echo "::notice::✅ Source branch '$SOURCE_BRANCH' has been merged into main."
-                echo "::notice::✅ Release branch has been deleted."
+                echo "::notice::🗑️ Release branch has been deleted."
 
                 if [[ "$SOURCE_BRANCH" != "main" && "$SOURCE_BRANCH" != "$BRANCH_TO_DELETE" ]]; then
                   echo "::notice::✅ Source branch '$SOURCE_BRANCH' has been deleted."
@@ -335,5 +343,5 @@ jobs:
               echo "::error::❌ Failed to merge source branch into main or clean up branches."
             fi
 
-            echo "::notice::Please check the job logs for more details."
+            echo "::notice::🔍 Please check the job logs for more details."
           fi
