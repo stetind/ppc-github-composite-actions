@@ -80,7 +80,6 @@ runs:
     
         if gh pr merge $PR_NUMBER \
           --admin \
-          --merge \
           --squash \
           --delete-branch=$DELETE_FLAG; then
           echo "::notice::Pull request merged successfully"
