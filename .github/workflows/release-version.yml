@@ -1,16 +1,10 @@
 name: 🚀 Release Version
-run-name: 🎯 Release v${{ inputs.version }} ${{
+run-name: 🎯 Release v${{ inputs.version }} ${{ 
   inputs.merge_option == 'none' && '' ||
   inputs.merge_option == 'merge' && '+ merge' ||
+  inputs.merge_option == 'merge and delete' && '+ merge & cleanup' ||
   '+ ' + inputs.merge_option
 }}
-
-# Run as:
-#   Manual trigger with inputs:
-#   - version: v1.0.0
-#   - merge_option: 'merge and delete' | 'merge' | 'none'
-# Example:
-#   gh workflow run release-version.yml -f version=v1.0.0 -f merge_option='merge and delete'
 
 on:
   workflow_dispatch:
