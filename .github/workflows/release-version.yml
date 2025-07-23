@@ -105,6 +105,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ format('release/{0}', github.event.inputs.version) }}
+          fetch-depth: 0
+
+      - name: Pull latest changes
+        run: |
+          echo "::notice::🔄 Pulling latest changes from release branch..."
+          git fetch origin
+          git pull origin ${{ format('release/{0}', github.event.inputs.version) }}
 
       - name: Log release creation
         run: |
@@ -129,6 +136,7 @@ jobs:
             uses: stetind/ppc-github-composite-actions/.github/actions/action-name@${{ github.event.inputs.version }}
             ```
           draft: false
+          target_commitish: ${{ github.ref_name }}
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
