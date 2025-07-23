@@ -42,11 +42,21 @@ runs:
       id: commits
       shell: bash
       run: |
+        # Function to escape backtick-wrapped content
+        escape_backticks() {
+          echo "$1" | sed 's/`\([^`]*\)`/\\`\1\\`/g'
+        }
+        
         if [[ "${{ inputs.tag }}" != "0.0.0" ]]; then
-          commits=$(git log "${{ inputs.tag }}"..HEAD --pretty=format:"%s|%b")
+          raw_commits=$(git log "${{ inputs.tag }}"..HEAD --pretty=format:"%s|%b")
         else
-          commits=$(git log HEAD --pretty=format:"%s|%b")
+          raw_commits=$(git log HEAD --pretty=format:"%s|%b")
         fi
+        
+        # Escape the commits
+        escaped_commits=$(escape_backticks "$raw_commits")
+        
         echo "commits<<EOF" >> $GITHUB_OUTPUT
-        echo "$commits" >> $GITHUB_OUTPUT
+        echo "$escaped_commits" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
+
