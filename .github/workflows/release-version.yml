@@ -1,5 +1,9 @@
 name: 🚀 Release Version
-run-name: 🎯 Release v${{ inputs.version }} ${{ inputs.merge_option != 'none' && '+ merge' || '' }}
+run-name: 🎯 Release v${{ inputs.version }} ${{
+  inputs.merge_option == 'none' && '' ||
+  inputs.merge_option == 'merge' && '+ merge' ||
+  '+ ' + inputs.merge_option
+}}
 
 # Run as:
 #   Manual trigger with inputs:
