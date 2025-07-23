@@ -35,22 +35,28 @@ name: Generate Changelog
 inputs:
   previous_tag:
     required: true
+    description: 'The Git tag to use as starting point for collecting commits'
   new_tag:
     required: false
     default: ''
+    description: 'Optional target version tag. If not provided, will be automatically computed based on conventional commits'
   repository:
     required: true
+    description: 'GitHub repository in owner/repo format (e.g., "owner/repository")'
   force:
     required: false
     default: 'false'
+    description: 'When set to true, generates changelog even if no new commits are detected'
 
 outputs:
   new_tag:
     value: ${{ steps.version.outputs.new_tag }}
+    description: 'The version tag that will be used for the release (either provided or computed)'
   has_changes:
     value: ${{ steps.check_commits.outputs.proceed == 'true' }}
+    description: 'Boolean indicating whether changes were found or generation was forced'
   changelog:
-    description: Markdown changelog
+    description: 'Generated changelog content in Markdown format'
     value: ${{ steps.log.outputs.changelog }}
 
 runs:
@@ -68,7 +74,7 @@ runs:
       with:
         commits: ${{ steps.get_commits.outputs.commits }}
         force: ${{ inputs.force }} 
-          
+
     - name: 🔍 Detect version bump and compute new version
       id: detect_version
       if: inputs.new_tag == ''
