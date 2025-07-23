@@ -1,3 +1,35 @@
+# ------------------------------------------------------------------------------
+# Composite Action: Generate Changelog
+#
+# This action generates a Markdown changelog based on conventional commits
+# between a previous Git tag and the current HEAD. It supports automatic
+# version bumping and allows overriding the tag manually. Designed for use in
+# automated release workflows.
+#
+# Features:
+# - Extracts commit messages since the last tag
+# - Determines whether a changelog should be created (or forced)
+# - Computes a new semantic version based on commit types (if new_tag not provided)
+# - Outputs a changelog in Markdown format
+#
+# Inputs:
+# - previous_tag: The tag to compare commits against (required)
+# - new_tag: Optional tag to use for changelog; if omitted, computed automatically
+# - repository: GitHub repo in owner/repo format
+# - force: Forces changelog generation even if no commits detected
+#
+# Outputs:
+# - new_tag: The version to be used in the release
+# - has_changes: Whether changelog was generated (based on commits or force)
+# - changelog: Markdown string of the generated changelog
+#
+# Requires:
+# - stetind/ppc-github-composite-actions/.github/actions/get-commits-since-tag@main
+# - stetind/ppc-github-composite-actions/.github/actions/check-should-proceed@main
+# - stetind/ppc-github-composite-actions/.github/actions/detect-version-bump@main
+# - stetind/ppc-github-composite-actions/.github/actions/generate-changelog@main
+# ------------------------------------------------------------------------------
+
 name: Generate Changelog
 
 inputs:
