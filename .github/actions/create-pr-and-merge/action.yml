@@ -90,9 +90,7 @@ runs:
             --base "${{ inputs.target }}" \
             --head "${{ inputs.source }}" \
             --title "${{ inputs.title }}" \
-            --body "This PR contains changes for ${{ inputs.title }}" \
-            --label "release" \
-            --label "automated pr")
+            --body "This PR contains changes for ${{ inputs.title }}")
         
           if [ $? -eq 0 ]; then
             echo "::notice::Pull request created successfully: $PR_URL"
