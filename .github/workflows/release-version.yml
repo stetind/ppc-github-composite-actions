@@ -209,7 +209,6 @@ jobs:
         run: |
           RELEASE_BRANCH="release/${{ github.event.inputs.version }}"
           SOURCE_BRANCH="${{ github.ref_name }}"
-          BRANCH_TO_DELETE="release/${{ github.event.inputs.version }}"
           REPO="${{ github.repository }}"
 
           # Create a file to store protected branch information for the summary
@@ -245,7 +244,7 @@ jobs:
           fi
 
           # Delete source branch if it's not main and not the same as branch_to_delete
-          if [[ "$SOURCE_BRANCH" != "main" && "$SOURCE_BRANCH" != "$BRANCH_TO_DELETE" ]]; then
+          if [[ "$SOURCE_BRANCH" != "main" ]]; then
             echo "::notice::Checking if source branch '$SOURCE_BRANCH' is protected..."
             if is_branch_protected "$SOURCE_BRANCH"; then
               echo "::warning::Branch '$SOURCE_BRANCH' is protected and will not be deleted."
@@ -256,22 +255,6 @@ jobs:
                 echo "::warning::Failed to delete source branch $SOURCE_BRANCH. It might have been already deleted or doesn't exist."
               else
                 echo "::notice::Successfully deleted source branch: $SOURCE_BRANCH"
-              fi
-            fi
-          fi
-
-          # If an additional branch to delete was specified and it's not main, delete it too
-          if [[ -n "$BRANCH_TO_DELETE" && "$BRANCH_TO_DELETE" != "main" && "$BRANCH_TO_DELETE" != "$RELEASE_BRANCH" ]]; then
-            echo "::notice::Checking if branch '$BRANCH_TO_DELETE' is protected..."
-            if is_branch_protected "$BRANCH_TO_DELETE"; then
-              echo "::warning::Branch '$BRANCH_TO_DELETE' is protected and will not be deleted."
-              echo "$BRANCH_TO_DELETE" >> protected_branches.txt
-            else
-              echo "::notice::Deleting additional branch: $BRANCH_TO_DELETE..."
-              if ! git push origin --delete $BRANCH_TO_DELETE; then
-                echo "::warning::Failed to delete branch $BRANCH_TO_DELETE. It might have been already deleted or doesn't exist."
-              else
-                echo "::notice::Successfully deleted branch: $BRANCH_TO_DELETE"
               fi
             fi
           fi
