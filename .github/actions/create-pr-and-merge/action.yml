@@ -40,9 +40,9 @@ inputs:
     description: 'GitHub token with permissions for PR creation and merging'
     required: true
   title:
-    description: 'Title for the pull request (defaults to "📦 New Release")'
+    description: 'Title for the pull request (defaults to "New Release")'
     required: false
-    default: '📦 New Release'
+    default: 'New Release'
   merge_option:
     description: 'Merge strategy (none, merge, merge and delete)'
     required: false
