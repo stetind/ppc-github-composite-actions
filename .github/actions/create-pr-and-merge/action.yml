@@ -68,6 +68,13 @@ runs:
     - name: 🔄 Create Pull Request
       id: create_pr
       shell: bash
+      run: |
+        # Configure git to trust the workspace
+        git config --global --add safe.directory "$(pwd)"
+
+    - name: 🔄 Create Pull Request
+      id: create_pr
+      shell: bash
       if: inputs.merge_option != 'none'
       env:
         GH_TOKEN: ${{ inputs.token }}
