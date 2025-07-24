@@ -27,6 +27,9 @@
 name: 🧹 Delete All Workflow Runs
 
 inputs:
+  token:
+    description: 'GitHub token with permissions for PR creation, branch merging, and deletion'
+    required: true
   status:
     description: |
       Optional status filter for workflow runs. Available options:
@@ -68,12 +71,12 @@ runs:
 
     - name: 🔐 Authenticate with GitHub CLI
       shell: bash
-      run: echo "${{ secrets.WORKFLOW_TOKEN }}" | gh auth login --with-token
+      run: echo "${{ inputs.token }}" | gh auth login --with-token
 
     - name: 🧼 Delete all workflow runs
       shell: bash
       env:
-        GH_TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        GH_TOKEN: ${{ inputs.token }}
       run: |
         echo "🚀 Fetching and deleting all workflow runs..."
         # Initialize counters for different statuses
