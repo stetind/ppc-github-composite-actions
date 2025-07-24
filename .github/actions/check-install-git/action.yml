@@ -1,0 +1,57 @@
+# ------------------------------------------------------------------------------
+# Composite Action: check-install-git
+#
+# This action ensures the GitHub CLI (`git`) is available on the runner.
+# If not found, it installs the GitHub CLI using apt package manager.
+#
+# Supported package managers:
+# - apt (Ubuntu/Debian)
+#
+# This action is useful as a prerequisite for any step or action that interacts
+# with GitHub repositories, issues, pull requests, or releases througit the
+# command line.
+#
+# Behavior:
+# - Installs GitHub CLI (git) using apt
+#
+# Output:
+# - GitHub CLI will be available for subsequent steps
+# ------------------------------------------------------------------------------
+
+name: check-install-git
+description: 'Ensures GitHub CLI (git) is installed and available on the runner. Installs it if missing.'
+
+runs:
+  using: composite
+  steps:
+    - name: Check and install git
+      id: check_git
+      shell: bash
+      run: |
+        set -e
+        echo "::notice::🔍 Checking for git installation..."
+
+        if ! command -v git &> /dev/null; then
+          echo "::notice::📦 git not found. Installing..."
+
+          if command -v apt-get &> /dev/null; then
+            sudo apt-get update &> /dev/null && sudo apt-get install -y -f git  &> /dev/null || apt-get update &> /dev/null && apt-get install -y -f git &> /dev/null 
+          elif command -v yum &> /dev/null; then
+            sudo yum install -y git &> /dev/null || yum install -y git &> /dev/null 
+          elif command -v apk &> /dev/null; then
+            apk add --no-cache git &> /dev/null 
+          elif command -v brew &> /dev/null; then
+            brew install git &> /dev/null 
+          else
+            echo "::error::Unable to install git. No supported package manager found."
+            exit 1
+          fi
+
+          echo "::notice::✅ git installed successfully"
+        else
+          echo "::notice::✅ git is already installed"
+        fi
+
+        # Verify git version
+        JQ_VERSION=$(which git)
+        echo "::notice::📊 Using $git_VERSION"

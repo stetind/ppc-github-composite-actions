@@ -38,6 +38,9 @@ runs:
     - name: 🔧 Install Jq
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@__VERSION__
 
+    - name: 🔧 Install Git
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-git@__VERSION__
+
     - name: 🏷️ Get latest tag
       id: get_tag
       shell: bash
