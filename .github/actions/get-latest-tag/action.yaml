@@ -32,11 +32,11 @@ outputs:
 runs:
   using: composite
   steps:
-    - name: ⬇️ Checkout repository
-      uses: actions/checkout@v4
-      with:
-        token: ${{ env.GH_TOKEN }}
-        fetch-depth: 0
+#    - name: ⬇️ Checkout repository
+#      uses: actions/checkout@v4
+#      with:
+#        token: ${{ env.GH_TOKEN }}
+#        fetch-depth: 0
 
     - name: 🔧 Install gh
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
@@ -46,6 +46,10 @@ runs:
 
     - name: 🔧 Install Git
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-git@__VERSION__
+
+    - name: 🔐 Authenticate with GitHub CLI
+      shell: bash
+      run: echo "${{ env.GH_TOKEN }}" | gh auth login --with-token
 
     - name: 🛠️ Setup Git
       shell: bash
