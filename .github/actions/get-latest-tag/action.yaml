@@ -41,6 +41,13 @@ runs:
     - name: 🔧 Install Git
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-git@__VERSION__
 
+    - name: 🛠️ Setup Git
+      shell: bash
+      run: |
+        git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
     - name: 🏷️ Get latest tag
       id: get_tag
       shell: bash
