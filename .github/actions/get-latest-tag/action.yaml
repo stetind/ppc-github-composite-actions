@@ -8,7 +8,7 @@
 # filters for published (non-draft, non-prerelease) tags that follow
 # semantic versioning format (vX.Y.Z).
 #
-# If no valid tag is found, it defaults to v0.0.0.
+# If no valid tag is found, it defaults to 0.0.0.
 #
 # Inputs:
 # - tag: Optional tag to use instead of the latest tag
@@ -77,8 +77,8 @@ runs:
           done
 
           if [[ "$latest_tag" == "not_found" ]]; then
-            echo "::warning ::No valid semver published release tag found, using v0.0.0"
-            echo "latest_tag=v0.0.0" >> $GITHUB_OUTPUT
+            echo "::warning ::No valid semver published release tag found, using 0.0.0"
+            echo "latest_tag=0.0.0" >> $GITHUB_OUTPUT
           fi
 
     - name: 🏷️ Use provided tag or latest tag

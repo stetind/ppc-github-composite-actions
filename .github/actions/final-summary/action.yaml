@@ -6,7 +6,7 @@
 # (production or pre-release), and the URL to the GitHub release.
 #
 # Inputs:
-# - version: The version tag of the release (e.g., v1.2.3)
+# - version: The version tag of the release (e.g., 1.2.3)
 # - prerelease: The pre-release identifier, if applicable (empty for production releases)
 # ------------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ description: Generates a final summary of the release process
 inputs:
   version:
     required: true
-    description: 'The version tag of the release (e.g., v1.2.3)'
+    description: 'The version tag of the release (e.g., 1.2.3)'
   prerelease:
     required: false
     default: ""

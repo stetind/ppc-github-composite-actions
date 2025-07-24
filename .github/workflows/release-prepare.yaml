@@ -22,7 +22,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Optional tag version (e.g., v1.0.0). Leave empty for the latest tag.'
+        description: 'Optional tag version (e.g., 1.0.0). Leave empty for the latest tag.'
         required: false
         type: string
       prerelease:

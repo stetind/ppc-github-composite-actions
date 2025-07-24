@@ -18,7 +18,7 @@
 # 4. Compute new version - Calculates the new version based on the bump type
 #
 # Inputs:
-# - tag: The previous tag in `vX.Y.Z` format (e.g. v1.2.3)
+# - tag: The previous tag in `vX.Y.Z` format (e.g. 1.2.3)
 # - commits: String containing commit messages to process (subject§body format with escaped pipe and section sign characters)
 #
 # Outputs:
@@ -33,7 +33,7 @@ description: Compute new version based on conventional commits
 inputs:
   tag:
     required: true
-    description: 'The previous tag in vX.Y.Z format (e.g. v1.2.3)'
+    description: 'The previous tag in X.Y.Z format (e.g. 1.2.3)'
   commits:
     required: true
     description: 'String containing commit messages to process (subject§body format with escaped pipe and section sign characters)'
@@ -84,8 +84,8 @@ runs:
         if [[ -z "${{ inputs.commits }}" ]]; then
           echo "::notice ::No parsed commits available, retrieving from git"
           if [[ "$current_version" != "0.0.0" ]]; then
-            commits=$(git log "v${current_version}"..HEAD --pretty=format:"%s%n%b")
-            echo "::notice ::Retrieved commits since v${current_version}"
+            commits=$(git log "${current_version}"..HEAD --pretty=format:"%s%n%b")
+            echo "::notice ::Retrieved commits since ${current_version}"
           else
             commits=$(git log HEAD --pretty=format:"%s%n%b")
             echo "::notice ::Retrieved all commits (no previous version)"
@@ -163,5 +163,5 @@ runs:
           new_version="$current_version"
         fi
 
-        echo "::notice ::New version computed: v$new_version"
-        echo "new_version=v$new_version" >> $GITHUB_OUTPUT
+        echo "::notice ::New version computed: $new_version"
+        echo "new_version=$new_version" >> $GITHUB_OUTPUT
