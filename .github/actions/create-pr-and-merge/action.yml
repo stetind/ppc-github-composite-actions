@@ -40,7 +40,11 @@ runs:
     - name: 🔄 Create Pull Request
       id: create_pr
       shell: bash
-      if: inputs.merge_option != 'none'
+      if: |
+        inputs.merge_option != 'none' && 
+        inputs.source != inputs.target &&
+        inputs.source != '' &&
+        inputs.target != ''
       env:
         GH_TOKEN: ${{ inputs.token }}
       run: |
@@ -71,7 +75,10 @@ runs:
       shell: bash
       if: |
         inputs.merge_option != 'none' && 
-        steps.create_pr.outputs.pr_url != ''
+        steps.create_pr.outputs.pr_url != '' &&
+        inputs.source != inputs.target &&
+        inputs.source != '' &&
+        inputs.target != ''
       env:
         GH_TOKEN: ${{ inputs.token }}
       run: |
