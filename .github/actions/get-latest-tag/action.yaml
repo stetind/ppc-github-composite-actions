@@ -43,9 +43,8 @@ runs:
       shell: bash
       run: |
         # Loop through the latest releases and find the most recent published release tag
-          set -eo pipefail
+          set -e
 
-          page=1
           latest_tag=$(gh release list --limit 100 --json tagName,isDraft,isPrerelease \
             --jq '.[] | select(.isDraft == false and .isPrerelease == false) | .tagName' \
             | head -n 1)
