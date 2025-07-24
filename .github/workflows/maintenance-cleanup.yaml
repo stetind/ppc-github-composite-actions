@@ -61,7 +61,7 @@ on:
 jobs:
   cleanup:
     name: Cleanup
-    uses: stetind/ppc-reusable-workflows/.github/workflows/maintenance-workflow-cleanup.yaml@9.0.0
+    uses: stetind/ppc-reusable-workflows/.github/workflows/maintenance-workflow-cleanup.yaml@v9.0.0
     secrets: inherit
     with:
       status: ${{ inputs.status }}
