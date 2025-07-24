@@ -20,16 +20,7 @@
 
 name: Get Latest Git Tag
 
-inputs:
-  tag:
-    required: false
-    default: ''
-    description: Optional tag to use instead of the latest tag (if empty, the latest tag will be used)
-
 outputs:
-  selected_tag:
-    description: The tag that was selected (either provided or latest)
-    value: ${{ steps.select_tag.outputs.selected_tag }}
   latest_tag:
     description: The latest published semantic version tag from the repository
     value: ${{ steps.get_tag.outputs.latest_tag }}
@@ -80,18 +71,3 @@ runs:
             echo "::warning ::No valid semver published release tag found, using 0.0.0"
             echo "latest_tag=0.0.0" >> $GITHUB_OUTPUT
           fi
-
-    - name: 🏷️ Use provided tag or latest tag
-      id: select_tag
-      shell: bash
-      run: |
-        LATEST="${{ steps.get_tag.outputs.latest_tag }}"
-        TAG_INPUT="${{ inputs.tag }}"
-
-        if [[ -n "$TAG_INPUT" ]]; then
-          echo "selected_tag=$TAG_INPUT" >> $GITHUB_OUTPUT
-          echo "::notice ::Using provided tag: $TAG_INPUT"
-        else
-          echo "selected_tag=$LATEST" >> $GITHUB_OUTPUT
-          echo "::notice ::Using latest tag: $LATEST"
-        fi

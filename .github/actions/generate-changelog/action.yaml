@@ -52,6 +52,7 @@ runs:
           [breaking]="### 💥 Breaking Changes"
           [feat]="### ✨ Features"
           [fix]="### 🐞 Fixes"
+          [fixes]="### 🐞 Fixes"
           [chore]="### 🔧 Chores"
           [docs]="### 📚 Documentation"
           [refactor]="### 🔄 Refactors"
@@ -98,7 +99,7 @@ runs:
         
         # Start creating the changelog with previous and new tags
         changelog="### 🧾 Changes from \`${{ inputs.previous_tag }}\` → \`${{ inputs.new_tag }}\`\n"
-        changelog+="[see changes](https://github.com/${{ github.repository }}/compare/${{ inputs.previous_tag }}...${{ inputs.new_tag }})\n\n"
+        changelog+="[see changes](https://github.com/${{ inputs.repository }}/compare/${{ inputs.previous_tag }}...${{ inputs.new_tag }})\n\n"
         
         # Add grouped commits to the changelog under the appropriate section
         for key in "${!sections[@]}"; do
@@ -108,8 +109,6 @@ runs:
         done
         
         # Output the changelog as the result
-        echo "has_changes=true" >> $GITHUB_OUTPUT
         echo "changelog<<EOF" >> $GITHUB_OUTPUT
         echo -e "$changelog" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
-        
