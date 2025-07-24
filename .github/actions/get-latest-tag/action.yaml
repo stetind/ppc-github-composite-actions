@@ -20,6 +20,10 @@
 
 name: Get Latest Git Tag
 
+inputs:
+  repository:
+    description: The searched repository
+    default: ${{ github.repository }}
 outputs:
   latest_tag:
     description: The latest published semantic version tag from the repository
@@ -42,32 +46,14 @@ runs:
           set -eo pipefail
 
           page=1
-          latest_tag="not_found"
-
-          while true; do
-            echo "🔄 Fetching page $page of releases..."
-            releases=$(gh api "/repos/${{ github.repository }}/releases?per_page=100&page=$page" \
-              --jq '[.[] | select(.draft == false and .prerelease == false) | .tag_name | select(test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$"))][]')
-
-            if [[ -z "$releases" ]]; then
-              break
-            fi
-
-            for tag in $releases; do
-              latest_tag=$tag
-              break  # first valid one (most recent)
-            done
-
-            if [[ "$latest_tag" != "not_found" ]]; then
-              echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
-              echo "::notice ::Latest published semver tag found: $latest_tag"
-              break
-            fi
-
-            ((page+=1))
-          done
-
-          if [[ "$latest_tag" == "not_found" ]]; then
-            echo "::warning ::No valid semver published release tag found, using 0.0.0"
-            echo "latest_tag=0.0.0" >> $GITHUB_OUTPUT
-          fi
+          latest_tag=$(gh release list --limit 100 --json tagName,isDraft,isPrerelease \
+            --jq '.[] | select(.isDraft == false and .isPrerelease == false) | .tagName' \
+            | head -n 1)
+  
+        if [[ -n "$latest_tag" ]]; then
+          echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+          echo "::notice ::Latest published semver tag found: $latest_tag"
+        else
+          echo "::warning ::No valid semver published release tag found, using 0.0.0"
+          echo "latest_tag=0.0.0" >> $GITHUB_OUTPUT
+        fi
