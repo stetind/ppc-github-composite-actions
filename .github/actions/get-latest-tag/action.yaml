@@ -32,6 +32,12 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: ⬇️ Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ env.GH_TOKEN }}
+        fetch-depth: 0
+
     - name: 🔧 Install gh
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
 
