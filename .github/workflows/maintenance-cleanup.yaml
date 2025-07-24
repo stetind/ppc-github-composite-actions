@@ -1,0 +1,70 @@
+name: 🧹 Delete All Workflow Runs
+run-name: 🧹 Delete all `${{ inputs.status }}` of (${{ inputs.workflow_name || 'all' }} )
+
+on:
+  workflow_dispatch:
+    inputs:
+      status:
+        description: |
+          Optional status filter for workflow runs. Available options:
+          • completed - All completed runs
+          • action_required - Runs that require action
+          • cancelled - Manually cancelled runs
+          • failure - Failed runs
+          • neutral - Runs with neutral outcome
+          • skipped - Skipped runs
+          • stale - Stale runs
+          • success - Successful runs
+          • timed_out - Runs that exceeded time limit
+          • queued - Queued runs
+          • requested - Requested runs
+          • waiting - Waiting runs
+          • pending - Pending runs
+        type: choice
+        required: false
+        default: 'cancelled'
+        options:
+          - completed
+          - action_required
+          - cancelled
+          - failure
+          - neutral
+          - skipped
+          - stale
+          - success
+          - timed_out
+          - queued
+          - requested
+          - waiting
+          - pending
+      workflow_name:
+        description: 'The name of the workflow to delete runs for (e.g., "CI Workflow")'
+        required: false
+        type: string
+      runner:
+        description: 'Choose the runner'
+        required: false
+        default: 'ubuntu-latest'
+        type: choice
+        options:
+          - 'self-hosted'
+          - 'ubuntu-latest'
+      job_container:
+        description: 'Select the docker container for the action'
+        required: false
+        default: 'node:22.14'
+        type: choice
+        options:
+          - 'node:22.14'
+          - 'ubuntu:latest'
+
+jobs:
+  cleanup:
+    name: Cleanup
+    uses: stetind/ppc-reusable-workflows/.github/workflows/maintenance-workflow-cleanup.yaml@9.0.0
+    secrets: inherit
+    with:
+      status: ${{ inputs.status }}
+      workflow_name: ${{ inputs.workflow_name }}
+      runner: ${{ inputs.runner }}
+      job_container: ${{ inputs.job_container }}
