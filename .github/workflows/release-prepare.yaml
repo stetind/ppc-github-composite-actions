@@ -59,6 +59,7 @@ jobs:
   prepare:
     name: Prepare & Push
     uses: stetind/ppc-reusable-workflows/.github/workflows/release-preparation.yaml@v9.0.0
+    secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       prerelease: ${{ inputs.prerelease }}
