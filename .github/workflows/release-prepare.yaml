@@ -55,9 +55,6 @@ on:
           - 'node:22.14'
           - 'ubuntu:latest'
 
-env:
-  TEMP_BRANCH: releases
-
 jobs:
   prepare:
     name: Prepare & Push
@@ -68,4 +65,4 @@ jobs:
       merge_option: ${{ inputs.merge_option }}
       runner: ${{ inputs.runner }}
       job_container: ${{ inputs.job_container }}
-      temp_branch: ${{ env.TEMP_BRANCH }}
+      temp_branch: 'releases'
