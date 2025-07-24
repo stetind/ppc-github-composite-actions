@@ -101,14 +101,14 @@ runs:
 
         while IFS= read -r line; do
           # Detect conventional commits with optional scope and optional breaking change (!)
-          if [[ "$line" =~ ^(feat|fix|chore|refactor|perf|style|test|build|ci)(\([a-zA-Z0-9_-]+\))?!?: ]]; then
+          if [[ "$line" =~ ^(feat|fix|fixes|chore|refactor|perf|style|test|build|ci|api)(\([a-zA-Z0-9_-]+\))?!?: ]]; then
             type=$(echo "$line" | sed -E 's/^([a-z]+).*/\1/')
             if [[ "$line" =~ "!" ]]; then
               bump_major=1
               echo "::notice ::Found breaking change: $line"
-            elif [[ "$type" == "feat" ]]; then
+            elif [[ "$type" == "feat" ]] || [[ "$type" == "perf" ]] || [[ "$type" == "refactor" ]] || [[ "$type" == "api" ]]; then
               bump_minor=1
-            elif [[ "$type" == "fix" ]]; then
+            else
               bump_patch=1
             fi
           elif [[ "$line" =~ BREAKING[[:space:]]CHANGE ]]; then
