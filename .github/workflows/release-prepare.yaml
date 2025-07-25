@@ -1,5 +1,5 @@
 # =============================================================================
-# 🎯 Prepare New Release
+# 🚧 Release Preparation Workflow
 #
 # Description:
 #   Workflow that initiates the release preparation process by calling
@@ -15,14 +15,14 @@
 # =============================================================================
 
 
-name: 🎯 Prepare New Release
-run-name: 🎯 Prepare New Release
+name: 🚧 Release Preparation Workflow
+run-name: 🚧 Release Preparation Workflow
 
 on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Optional tag version (e.g., 1.0.0). Leave empty for the latest tag.'
+        description: 'Optional tag version (e.g., v1.0.0). Leave empty for the latest tag.'
         required: false
         type: string
       prerelease:
@@ -33,7 +33,7 @@ on:
         description: 'Merge and cleanup option'
         required: false
         type: choice
-        default: ' none'
+        default: 'merge and delete'
         options:
           - 'merge and delete'
           - 'merge'
@@ -49,7 +49,7 @@ on:
       job_container:
         description: 'Select the docker container for the action'
         required: false
-        default: 'node:22.14'
+        default: 'ubuntu:latest'
         type: choice
         options:
           - 'node:22.14'
