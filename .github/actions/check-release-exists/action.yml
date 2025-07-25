@@ -1,0 +1,31 @@
+name: check-release-exists
+
+inputs:
+  version:
+    required: true
+    description: ''
+outputs:
+  exists:
+    description: ''
+    value: ${{ steps.check.outputs.exists }}
+runs:
+  using: composite
+  steps:
+    - name: 🔧 Install gh
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
+
+    - name: 🔧 Install Jq
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@__VERSION__
+
+    - name: Check if release exists
+      id: check
+      shell: bash
+      run: |
+        release_exists=$(gh release view ${{ inputs.version }} --json name --jq ".name" || echo "not_found")
+        if [[ "$release_exists" != "not_found" ]]; then
+          echo "::error ::Release with tag ${{ inputs.version }} already exists. Exiting."
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "::notice ::No existing release found, proceeding with release creation."
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
