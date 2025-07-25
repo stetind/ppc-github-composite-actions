@@ -40,6 +40,10 @@ inputs:
   target_branch:
     required: true
     description: 'The branch or commit SHA that the tag should point to.'
+  generate_release_notes:
+    required: false
+    description: 'Use auto generated notes in release body'
+    default: 'false'
   draft:
     required: false
     default: "false"
@@ -61,7 +65,7 @@ runs:
         name: Release ${{ inputs.version }}
         body: ${{ inputs.changelog_file != '' && '' || steps.decode.outputs.text }}
         body_path: ${{ inputs.changelog_file != '' && inputs.changelog_file || '' }}
-        generate_release_notes: true
+        generate_release_notes: ${{ inputs.generate_release_notes  }}
         prerelease: ${{ inputs.prerelease }}
         target_commitish: ${{ inputs.target_branch }}
         draft: ${{ inputs.draft }}
