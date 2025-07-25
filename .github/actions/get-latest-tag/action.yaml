@@ -49,11 +49,8 @@ runs:
       shell: bash
       run: |
         # Loop through the latest releases and find the most recent published release tag
-          set -eo pipefail
-
           latest_tag=$(gh release list --limit 100 --json tagName,isDraft,isPrerelease \
-            --jq '.[] | select(.isDraft == false and .isPrerelease == false) | .tagName' \
-            | head -n 1)
+            --jq '[.[] | select(.isDraft == false and .isPrerelease == false) | .tagName] | first')
   
         if [[ -n "$latest_tag" ]]; then
           echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
@@ -62,3 +59,4 @@ runs:
           echo "::warning ::No valid semver published release tag found, using 0.0.0"
           echo "latest_tag=0.0.0" >> $GITHUB_OUTPUT
         fi
+  
