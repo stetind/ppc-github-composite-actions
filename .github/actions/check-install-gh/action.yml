@@ -59,7 +59,3 @@ runs:
 
         # Verify version
         echo "::notice::📊 Using $(gh --version)"
-
-    - name: 🔐 Authenticate with GitHub CLI
-      shell: bash
-      run: echo "${{ inputs.token }}" | gh auth login --with-token

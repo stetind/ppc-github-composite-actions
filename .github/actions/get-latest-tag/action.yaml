@@ -34,8 +34,6 @@ runs:
   steps:
     - name: 🔧 Install gh
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
-      with:
-        token: ${{ env.GH_TOKEN }}
 
     - name: 🔧 Install Jq
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@__VERSION__
