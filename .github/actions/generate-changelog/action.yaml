@@ -52,7 +52,6 @@ runs:
           [breaking]="### 💥 Breaking Changes"
           [feat]="### ✨ Features"
           [fix]="### 🐞 Fixes"
-          [fixes]="### 🐞 Fixes"
           [chore]="### 🔧 Chores"
           [docs]="### 📚 Documentation"
           [refactor]="### 🔄 Refactors"
@@ -80,6 +79,10 @@ runs:
           # Strip '!' if it's a breaking change
           type=$(echo "$raw_type" | sed 's/!$//')
         
+          if [[ "$type" == "fixes" ]]; then
+            type="fix"
+          fi
+  
           # Only group commits of recognized types (feat, fix, etc.)
           if [[ -n "$type" && "${sections[$type]}" ]]; then
             # Check for duplicates (if already seen)
