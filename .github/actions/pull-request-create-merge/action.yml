@@ -1,0 +1,36 @@
+name: Create Pull Request and Merge
+description: Creates and optionally merges a pull request with support for branch cleanup
+
+inputs:
+  token:
+    description: 'GitHub token with permissions for PR creation and merging'
+    required: true
+  title:
+    description: 'Title for the pull request (defaults to "New Release")'
+    required: false
+    default: 'New Release'
+  target:
+    description: 'Target branch for the pull request'
+    required: false
+    default: 'main'
+  source:
+    description: 'Source branch for the pull request'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: 🔄 Create Pull Request
+      id: create_pr
+      uses: stetind/ppc-github-composite-actions/.github/actions/pull-request-create@__VERSION__
+      with:
+        token: ${{ inputs.token }}
+        title: ${{ inputs.new_tag }}
+        source: ${{ inputs.source_branch }}
+        target: ${{ inputs.default_branch }}
+        body: ${{ inputs.new_tag }}
+
+    - name: 🔀 Merge Pull Request
+      uses: stetind/ppc-github-composite-actions/.github/actions/pull-request-merge@__VERSION__
+      with:
+        url: ${{ steps.create_pr.outputs.pr_url }}

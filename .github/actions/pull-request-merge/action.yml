@@ -1,0 +1,38 @@
+name: Create PR
+description: Creates and optionally merges a pull request with support for branch cleanup
+
+inputs:
+  delete_source:
+    description: ''
+    default: 'false'
+    required: false
+  pr_url:
+    description: 'The URL of the Pull Request that want to merged'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: 🔧 Install gh
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
+
+    - name: 🔧 Setup Git
+      uses: stetind/ppc-github-composite-actions/.github/actions/git-setup@__VERSION__
+
+    - name: 🔀 Merge Pull Request
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        PR_NUMBER=$(echo "${{ inputs.pr_url }}" | awk -F'/' '{print $NF}')
+        DELETE_FLAG=${{ inputs.delete_source == 'true' }}
+
+        if gh pr merge $PR_NUMBER \
+          --admin \
+          --squash \
+          --delete-branch=$DELETE_FLAG; then
+          echo "::notice::Pull request merged successfully"
+        else
+          echo "::error::Failed to merge pull request"
+          exit 1
+        fi

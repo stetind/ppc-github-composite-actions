@@ -1,4 +1,4 @@
-name: Create PR and Merge
+name: Create PR
 description: Creates and optionally merges a pull request with support for branch cleanup
 
 inputs:
@@ -9,10 +9,10 @@ inputs:
     description: 'Title for the pull request (defaults to "New Release")'
     required: false
     default: 'New Release'
-  merge_option:
-    description: 'Merge strategy (none, merge, merge and delete)'
+  body:
+    description: 'Body for the pull request (defaults to "New Release")'
     required: false
-    default: 'merge and delete'
+    default: '-'
   target:
     description: 'Target branch for the pull request'
     required: false
@@ -28,23 +28,15 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: 🔧 Install GH
+    - name: 🔧 Install gh
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
 
-    - name: Set safe Directory
-      id: safe_dir
-      shell: bash
-      run: |
-        git config --global --add safe.directory "$(pwd)"
+    - name: 🔧 Setup Git
+      uses: stetind/ppc-github-composite-actions/.github/actions/git-setup@__VERSION__
 
     - name: 🔄 Create Pull Request
       id: create_pr
       shell: bash
-      if: |
-        inputs.merge_option != 'none' && 
-        inputs.source != inputs.target &&
-        inputs.source != '' &&
-        inputs.target != ''
       env:
         GH_TOKEN: ${{ inputs.token }}
       run: |
@@ -60,37 +52,13 @@ runs:
             --base "${{ inputs.target }}" \
             --head "${{ inputs.source }}" \
             --title "${{ inputs.title }}" \
-            --body "This PR contains changes for ${{ inputs.title }}")
+            --body "${{ inputs.body }}")
         
           if [ $? -eq 0 ]; then
             echo "::notice::Pull request created successfully: $PR_URL"
             echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
           else
             echo "::error::Failed to create pull request"
-            exit 1
+            echo "pr_url=''" >> $GITHUB_OUTPUT
           fi
-        fi
-
-    - name: 🔀 Merge Pull Request
-      shell: bash
-      if: |
-        inputs.merge_option != 'none' && 
-        steps.create_pr.outputs.pr_url != '' &&
-        inputs.source != inputs.target &&
-        inputs.source != '' &&
-        inputs.target != ''
-      env:
-        GH_TOKEN: ${{ inputs.token }}
-      run: |
-        PR_NUMBER=$(echo "${{ steps.create_pr.outputs.pr_url }}" | awk -F'/' '{print $NF}')
-        DELETE_FLAG=${{ inputs.merge_option == 'merge and delete' }}
-    
-        if gh pr merge $PR_NUMBER \
-          --admin \
-          --squash \
-          --delete-branch=$DELETE_FLAG; then
-          echo "::notice::Pull request merged successfully"
-        else
-          echo "::error::Failed to merge pull request"
-          exit 1
         fi
