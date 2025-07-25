@@ -48,9 +48,11 @@ runs:
         }
         
         if [[ "${{ inputs.tag }}" != "0.0.0" ]]; then
-          raw_commits=$(git log "${{ inputs.tag }}"..HEAD --pretty=format:"%s|%b")
+          echo "::notice ::Get commits --> ${{ inputs.tag }}..HEAD"
+          raw_commits=$(git log "${{ inputs.tag }}"..HEAD --pretty=format:"%s|")
         else
-          raw_commits=$(git log HEAD --pretty=format:"%s|%b")
+          echo "::notice ::Get commits --> HEAD"
+          raw_commits=$(git log HEAD --pretty=format:"%s|")
         fi
         
         # Escape the commits
