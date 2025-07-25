@@ -32,14 +32,10 @@ outputs:
 runs:
   using: composite
   steps:
-#    - name: ⬇️ Checkout repository
-#      uses: actions/checkout@v4
-#      with:
-#        token: ${{ env.GH_TOKEN }}
-#        fetch-depth: 0
-
     - name: 🔧 Install gh
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
+      with:
+        token: ${{ env.GH_TOKEN }}
 
     - name: 🔧 Install Jq
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@__VERSION__
@@ -47,16 +43,8 @@ runs:
     - name: 🔧 Install Git
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-git@__VERSION__
 
-    - name: 🔐 Authenticate with GitHub CLI
-      shell: bash
-      run: echo "${{ env.GH_TOKEN }}" | gh auth login --with-token
-
-    - name: 🛠️ Setup Git
-      shell: bash
-      run: |
-        git config --global --add safe.directory "$(pwd)"
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+    - name: 🔧 Setup Git
+      uses: stetind/ppc-github-composite-actions/.github/actions/git-setup@__VERSION__
 
     - name: 🏷️ Get latest tag
       id: get_tag

@@ -56,7 +56,6 @@ runs:
         else
           echo "::notice::✅ jq is already installed"
         fi
-
-        # Verify jq version
-        JQ_VERSION=$(jq --version)
-        echo "::notice::📊 Using $JQ_VERSION"
+        
+        # Verify version
+        echo "::notice::📊 Using $(jq --version)"

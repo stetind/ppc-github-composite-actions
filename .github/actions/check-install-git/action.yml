@@ -51,7 +51,6 @@ runs:
         else
           echo "::notice::✅ git is already installed"
         fi
-
-        # Verify git version
-        JQ_VERSION=$(which git)
-        echo "::notice::📊 Using $git_VERSION"
+        
+        # Verify version
+        echo "::notice::📊 Using $(which git)"
