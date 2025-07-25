@@ -1,0 +1,38 @@
+name: Base64 Encode
+
+inputs:
+  text:
+    required: true
+    description: 'The original text'
+outputs:
+  text:
+    description: ''
+    value: ${{ steps.decode.outputs.text }}
+
+runs:
+  using: composite
+  steps:
+    - name: Decode Release Notes
+      id: decode
+      shell: bash
+      run: |
+        # Define the function
+        is_base64() {
+          local string="$1"
+          echo "$string" | base64 -d > /dev/null 2>&1
+          return $?
+        }
+
+        CONTENT="${{ inputs.text }}"
+
+        if is_base64 "$CONTENT"; then
+          TEXT=$CONTENT
+          echo "::notice ::Content was base64 encoded"
+        else
+          TEXT=$($CONTENT | base64) 
+          echo "::notice ::Content was not encoded to base64"
+        fi
+
+        echo "text<<EOF" >> $GITHUB_OUTPUT
+        echo "$TEXT" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT

@@ -28,6 +28,11 @@ inputs:
   changelog:
     required: true
     description: 'The body of the release notes in Markdown format.'
+    default: ''
+  changelog_file:
+    required: true
+    description: 'The body of the release notes in Markdown format.'
+    default: ''
   prerelease:
     required: false
     default: "false"
@@ -43,14 +48,23 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Decode changelog
+      id: decode
+      uses: stetind/ppc-github-composite-actions/.github/actions/base64-decode@__VERSION__
+      with:
+        text: ${{ inputs.release_notes }}
+
     - name: Create Release
       uses: softprops/action-gh-release@v2.3.2
       with:
         tag_name: v${{ inputs.version }}
         name: Release ${{ inputs.version }}
-        body: ${{ inputs.changelog }}
+        body: ${{ inputs.changelog_file != '' && '' || steps.decode.outputs.text }}
+        body_path: ${{ inputs.changelog_file != '' && inputs.changelog_file || '' }}
+        generate_release_notes: true
         prerelease: ${{ inputs.prerelease }}
         target_commitish: ${{ inputs.target_branch }}
         draft: ${{ inputs.draft }}
+        append_body: true
       env:
         GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
