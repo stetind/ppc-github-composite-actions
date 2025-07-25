@@ -65,6 +65,5 @@ runs:
         prerelease: ${{ inputs.prerelease }}
         target_commitish: ${{ inputs.target_branch }}
         draft: ${{ inputs.draft }}
-        append_body: true
       env:
         GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
