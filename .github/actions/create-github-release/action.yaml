@@ -57,7 +57,7 @@ runs:
     - name: Create Release
       uses: softprops/action-gh-release@v2.3.2
       with:
-        tag_name: v${{ inputs.version }}
+        tag_name: ${{ inputs.version }}
         name: Release ${{ inputs.version }}
         body: ${{ inputs.changelog_file != '' && '' || steps.decode.outputs.text }}
         body_path: ${{ inputs.changelog_file != '' && inputs.changelog_file || '' }}
