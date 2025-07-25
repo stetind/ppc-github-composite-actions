@@ -54,7 +54,7 @@ runs:
   steps:
     - name: Decode changelog
       id: decode
-      uses: stetind/ppc-github-composite-actions/.github/actions/base64-decode@__VERSION__
+      uses: stetind/ppc-github-composite-actions/.github/actions/base64-decode@v1.0.0
       with:
         text: ${{ inputs.release_notes }}
 

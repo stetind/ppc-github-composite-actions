@@ -12,10 +12,10 @@ runs:
   using: composite
   steps:
     - name: 🔧 Install gh
-      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@v1.0.0
 
     - name: 🔧 Install Jq
-      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@__VERSION__
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@v1.0.0
 
     - name: Check if release exists
       id: check
