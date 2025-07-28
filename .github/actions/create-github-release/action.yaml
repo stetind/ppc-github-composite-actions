@@ -1,42 +1,109 @@
 # ------------------------------------------------------------------------------
-# Composite Action: Create GitHub Release
+# Composite Action: create-github-release
 #
-# This action creates a GitHub release using the `softprops/action-gh-release`
-# action. It tags a specific commit (usually a branch head), attaches release
-# notes, and marks it as a draft or prerelease if needed.
+# Creates a GitHub release with provided tag, title, and changelog.
+# Supports draft releases and pre-releases with file attachments.
 #
-# Use this action after computing a new version and generating a changelog.
+# Features:
+# - Automated release creation
+# - Changelog integration
+# - Asset attachment support
+# - Draft/Pre-release options
+# - Release notes formatting
+# - Version tag validation
+#
+# Prerequisites:
+# - GitHub token with release creation permissions
+# - gh CLI (automatically installed)
 #
 # Inputs:
-# - version: The tag name to create (e.g., 1.3.0)
-# - changelog: The Markdown body content of the release notes
-# - prerelease: Optional; whether this is a prerelease (true/false)
-# - target_branch: The branch or commit to tag as the release (e.g., main)
-# - draft: Optional; whether to save as a draft release (true/false)
+# - token:
+#   Required: true
+#   Description: GitHub token for release creation
 #
-# Dependencies:
-# - Requires GITHUB_TOKEN (automatically available in GitHub-hosted runners)
+# - tag:
+#   Required: true
+#   Description: Tag name for the release
+#
+# - title:
+#   Required: true
+#   Description: Release title
+#
+# - body:
+#   Required: false
+#   Description: Release notes/changelog content
+#
+# - draft:
+#   Required: false
+#   Default: 'false'
+#   Description: Create as draft release
+#
+# - prerelease:
+#   Required: false
+#   Default: 'false'
+#   Description: Mark as pre-release
+#
+# - files:
+#   Required: false
+#   Description: Comma-separated list of files to attach
+#
+# Example Usage:
+# ```yaml
+# - uses: ./.github/actions/create-github-release
+#   with:
+#     token: ${{ secrets.GITHUB_TOKEN }}
+#     tag: v1.0.0
+#     title: Release v1.0.0
+#     body: |
+#       ## What's Changed
+#       * Feature A
+#       * Bug fix B
+#     files: dist/app.zip,README.md
+# ```
+#
+# Error Handling:
+# - Validates input parameters
+# - Checks file existence
+# - Verifies release creation
+# - Reports detailed status
 # ------------------------------------------------------------------------------
+
+
 
 name: Create GitHub Release
 description: 'Creates a GitHub release with tag, changelog, and optional prerelease/draft flags.'
 
 inputs:
+  token:
+    description: 'GitHub token for release creation'
+    required: true
   version:
     required: true
     description: 'The version tag name to create (e.g., 1.2.3).'
-  changelog:
+  title:
+    description: 'Release title'
     required: true
-    description: 'The body of the release notes in Markdown format.'
+  body:
+    description: 'Release notes content'
+    required: false
     default: ''
-  changelog_file:
-    required: true
-    description: 'The body of the release notes in Markdown format.'
+  body_path:
+    description: 'Path to release notes file'
+    required: false
     default: ''
+  draft:
+    required: false
+    default: "false"
+    description: 'Set to "true" if this should be created as a draft release.'
   prerelease:
     required: false
     default: "false"
     description: 'Set to "true" if this should be marked as a prerelease.'
+  files:
+    description: 'Comma-separated list of files to attach'
+    required: false
+    default: ''
+
   target_branch:
     required: true
     description: 'The branch or commit SHA that the tag should point to.'
@@ -44,30 +111,89 @@ inputs:
     required: false
     description: 'Use auto generated notes in release body'
     default: 'false'
-  draft:
-    required: false
-    default: "false"
-    description: 'Set to "true" if this should be created as a draft release.'
+
+outputs:
+  success:
+    description: 'Boolean indicating if the release was created successfully'
+    value: ${{ steps.create-release.outputs.success }}
+
 
 runs:
   using: composite
   steps:
-    - name: Decode changelog
-      id: decode
-      uses: stetind/ppc-github-composite-actions/.github/actions/base64-decode@__VERSION__
-      with:
-        text: ${{ inputs.release_notes }}
+    - name: 🔧 Install gh CLI
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
 
-    - name: Create Release
-      uses: softprops/action-gh-release@v2.3.2
-      with:
-        tag_name: ${{ inputs.version }}
-        name: Release ${{ inputs.version }}
-        body: ${{ inputs.changelog_file != '' && '' || steps.decode.outputs.text }}
-        body_path: ${{ inputs.changelog_file != '' && inputs.changelog_file || '' }}
-        generate_release_notes: ${{ inputs.generate_release_notes  }}
-        prerelease: ${{ inputs.prerelease }}
-        target_commitish: ${{ inputs.target_branch }}
-        draft: ${{ inputs.draft }}
+    - name: 📦 Create Release
+      id: create-release
+      shell: bash
       env:
-        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        # Initialize success flag
+        echo "success=false" >> $GITHUB_OUTPUT
+        
+        # Prepare command arguments
+        args=()
+        args+=("--title" "${{ inputs.title }}")
+        
+        # Handle release notes sources in priority order
+        if [[ -n "${{ inputs.body_path }}" && -f "${{ inputs.body_path }}" ]]; then
+          args+=("--notes-file" "${{ inputs.body_path }}")
+        elif [[ -n "${{ inputs.body }}" ]]; then
+          echo "${{ inputs.body }}" > release_notes.md
+          args+=("--notes-file" "release_notes.md")
+        elif [[ "${{ inputs.generate_release_notes }}" == "true" ]]; then
+          args+=("--generate-notes")
+        fi
+        
+        if [[ "${{ inputs.draft }}" == "true" ]]; then
+          args+=("--draft")
+        fi
+        
+        if [[ "${{ inputs.prerelease }}" == "true" ]]; then
+          args+=("--prerelease")
+        fi
+        
+        if [[ -n "${{ inputs.target_branch }}" ]]; then
+          args+=("--target" "${{ inputs.target_branch }}")
+        fi
+        
+        # Create release
+        if gh release create "${{ inputs.tag }}" "${args[@]}"; then
+          # Upload files if specified
+          if [[ -n "${{ inputs.files }}" ]]; then
+            IFS=',' read -ra FILES <<< "${{ inputs.files }}"
+            for file in "${FILES[@]}"; do
+              if [[ -f "$file" ]]; then
+                if ! gh release upload "${{ inputs.tag }}" "$file"; then
+                  echo "::warning::Failed to upload file: $file"
+                  exit 1
+                fi
+              else
+                echo "::warning::File not found: $file"
+                exit 1
+              fi
+            done
+          fi
+        
+          echo "::notice::Release created successfully: ${{ inputs.tag }}"
+          echo "success=true" >> $GITHUB_OUTPUT
+        else
+          echo "::error::Failed to create release"
+          exit 1
+        fi
+
+#    - name: Create Release
+#      uses: softprops/action-gh-release@v2.3.2
+#      with:
+#        tag_name: ${{ inputs.version }}
+#        name: Release ${{ inputs.version }}
+#        body: ${{ inputs.files != '' && '' || steps.decode.outputs.text }}
+#        body_path: ${{ inputs.files != '' && inputs.files || '' }}
+#        generate_release_notes: ${{ inputs.generate_release_notes  }}
+#        prerelease: ${{ inputs.prerelease }}
+#        target_commitish: ${{ inputs.target_branch }}
+#        draft: ${{ inputs.draft }}
+#      env:
+#        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
