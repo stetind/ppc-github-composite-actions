@@ -124,6 +124,9 @@ runs:
     - name: 🔧 Install gh CLI
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
 
+    - name: 🔧 Setup Git
+      uses: stetind/ppc-github-composite-actions/.github/actions/git-setup@__VERSION__
+
     - name: 📦 Create Release
       id: create-release
       shell: bash
