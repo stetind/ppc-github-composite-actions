@@ -21,6 +21,9 @@
 name: Get Latest Git Tag
 
 inputs:
+  token:
+    description: 'GitHub token with repository read permissions'
+    required: true
   repository:
     description: The searched repository
     default: ${{ github.repository }}
@@ -47,6 +50,8 @@ runs:
     - name: 🏷️ Get latest tag
       id: get_tag
       shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
       run: |
         # Loop through the latest releases and find the most recent published release tag
           latest_tag=$(gh release list --limit 100 --json tagName,isDraft,isPrerelease \
