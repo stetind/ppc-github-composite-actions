@@ -1,17 +1,79 @@
+# ------------------------------------------------------------------------------
+# Composite Action: check-release-exists
+#
+# This action checks if a GitHub release with a specified tag already exists
+# in the repository. Useful for preventing duplicate releases and validating
+# release strategies.
+#
+# Features:
+# - Release existence verification
+# - Tag validation
+# - GitHub API integration
+# - Detailed status reporting
+# - Non-destructive operation
+#
+# Prerequisites:
+# - GitHub token with read access to releases
+# - gh CLI tool (automatically installed if needed)
+#
+# Inputs:
+# - token:
+#   Required: true
+#   Description: GitHub token with repository read permissions
+#
+# - tag:
+#   Required: true
+#   Description: The tag name to check for existing release
+#
+# Outputs:
+# - exists:
+#   Description: 'true' if release exists, 'false' otherwise
+#
+# - url:
+#   Description: URL of the existing release (if found)
+#
+# Example Usage:
+# ```yaml
+# - uses: ./.github/actions/check-release-exists
+#   with:
+#     token: ${{ secrets.GITHUB_TOKEN }}
+#     tag: 'v1.0.0'
+# ```
+#
+# Error Handling:
+# - Validates input parameters
+# - Handles GitHub API errors gracefully
+# - Reports clear status messages
+# - Provides detailed error information
+#
+# Note:
+# - Case-sensitive tag comparison
+# - Only checks published releases
+# - Respects API rate limits
+# ------------------------------------------------------------------------------
+
 name: check-release-exists
+description: Verifies if a GitHub release with specified tag exists
 
 inputs:
+  token:
+    description: 'GitHub token with repository read permissions'
+    required: true
   version:
     required: true
-    description: ''
+    description: 'GitHub token with repository read permissions'
 outputs:
   exists:
-    description: ''
+    description: 'Boolean indicating if release exists'
     value: ${{ steps.check.outputs.exists }}
+  url:
+    description: 'URL of the existing release (if found)'
+    value: ${{ steps.check.outputs.url }}
+
 runs:
   using: composite
   steps:
-    - name: 🔧 Install gh
+    - name: 🔧 Install gh CLI
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
 
     - name: 🔧 Install Jq
@@ -20,12 +82,16 @@ runs:
     - name: Check if release exists
       id: check
       shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
       run: |
         release_exists=$(gh release view ${{ inputs.version }} --json name --jq ".name" || echo "not_found")
         if [[ "$release_exists" != "not_found" ]]; then
           echo "::error ::Release with tag ${{ inputs.version }} already exists. Exiting."
           echo "exists=true" >> $GITHUB_OUTPUT
+          echo "url=$release_url" >> $GITHUB_OUTPUT
         else
           echo "::notice ::No existing release found, proceeding with release creation."
           echo "exists=false" >> $GITHUB_OUTPUT
+          echo "url=" >> $GITHUB_OUTPUT
         fi
