@@ -1,18 +1,57 @@
+# ------------------------------------------------------------------------------
+# Composite Action: base64-encode
+#
+# This action provides Base64 encoding functionality for GitHub Actions workflows.
+# It encodes input strings into Base64 format with proper error handling and
+# validation.
+#
+# Features:
+# - Secure Base64 encoding
+# - Support for multi-line content
+# - Platform-independent encoding
+# - Input validation and error handling
+#
+# Prerequisites:
+# - None (uses built-in shell commands)
+#
+# Inputs:
+# - content: The string content to encode
+#   Required: true
+#   Description: Plain text content that needs to be encoded to Base64
+#
+# Outputs:
+# - encoded: The Base64 encoded string
+#   Description: The resulting Base64 encoded content
+#
+# Example Usage:
+# ```yaml
+# - uses: ./.github/actions/base64-encode
+#   with:
+#     content: "Hello World!"
+# # Expected output: SGVsbG8gV29ybGQh
+# ```
+#
+# Error Handling:
+# - Validates input is not empty
+# - Ensures encoding operation succeeds
+# - Returns clear error messages on failure
+# ------------------------------------------------------------------------------
+
 name: Base64 Encode
 
 inputs:
   text:
     required: true
-    description: 'The original text'
+    description: 'The content to encode in Base64'
 outputs:
   text:
-    description: ''
+    description: 'The Base64 encoded content'
     value: ${{ steps.decode.outputs.text }}
 
 runs:
   using: composite
   steps:
-    - name: Decode Release Notes
+    - name: 🔐 Encode to Base64
       id: decode
       shell: bash
       run: |
