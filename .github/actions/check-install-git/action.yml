@@ -1,25 +1,57 @@
 # ------------------------------------------------------------------------------
 # Composite Action: check-install-git
 #
-# This action ensures the GitHub CLI (`git`) is available on the runner.
-# If not found, it installs the GitHub CLI using apt package manager.
+# This action verifies and installs Git if not present in the environment.
+# Ensures Git is available and properly configured for version control operations.
 #
-# Supported package managers:
-# - apt (Ubuntu/Debian)
+# Features:
+# - Automatic Git detection
+# - Version verification
+# - Platform-aware installation
+# - Installation of required dependencies
+# - Validation of installation success
 #
-# This action is useful as a prerequisite for any step or action that interacts
-# with GitHub repositories, issues, pull requests, or releases througit the
-# command line.
+# Prerequisites:
+# - apt-get available (for Debian/Ubuntu environments)
+# - Sufficient permissions to install packages
 #
-# Behavior:
-# - Installs GitHub CLI (git) using apt
+# Inputs:
+# - None required
+#   Action automatically handles detection and installation
 #
-# Output:
-# - GitHub CLI will be available for subsequent steps
+# Outputs:
+# - installed: Boolean indicating if Git was newly installed
+# - version: Installed Git version
+#
+# Example Usage:
+# ```yaml
+# - uses: ./.github/actions/check-install-git
+#   name: Ensure Git is available
+# ```
+#
+# Error Handling:
+# - Validates system package manager availability
+# - Checks installation success
+# - Reports detailed error messages for troubleshooting
+# - Verifies Git functionality after installation
+#
+# Note:
+# - This action is essential for workflows requiring Git operations
+# - Automatically handles different Linux distributions
+# - Includes basic Git configuration setup
 # ------------------------------------------------------------------------------
 
 name: check-install-git
-description: 'Ensures GitHub CLI (git) is installed and available on the runner. Installs it if missing.'
+description: Ensures Git is installed and available in the environment
+
+outputs:
+  installed:
+    description: 'Whether Git was newly installed'
+    value: ${{ steps.check_gh.outputs.installed }}
+  version:
+    description: 'Installed Git version'
+    value: ${{ steps.check_gh.outputs.version }}
+
 
 runs:
   using: composite
@@ -46,11 +78,14 @@ runs:
             echo "::error::Unable to install git. No supported package manager found."
             exit 1
           fi
-
+        
+          echo "installed=true" >> $GITHUB_OUTPUT
           echo "::notice::✅ git installed successfully"
         else
+          echo "installed=false" >> $GITHUB_OUTPUT
           echo "::notice::✅ git is already installed"
         fi
         
         # Verify version
+        echo "version=$(git --version)" >> $GITHUB_OUTPUT
         echo "::notice::📊 Using $(which git)"

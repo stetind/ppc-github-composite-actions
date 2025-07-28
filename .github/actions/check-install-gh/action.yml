@@ -1,25 +1,51 @@
 # ------------------------------------------------------------------------------
 # Composite Action: check-install-gh
 #
-# This action ensures the GitHub CLI (`gh`) is available on the runner.
-# If not found, it installs the GitHub CLI using apt package manager.
+# This action verifies and installs the GitHub CLI (gh) if not present.
+# It ensures the gh CLI tool is available for GitHub API operations.
 #
-# Supported package managers:
-# - apt (Ubuntu/Debian)
+# Features:
+# - Automatic gh CLI detection
+# - Installation if not present
+# - Version verification
+# - Platform-aware installation
+# - Proper error handling
 #
-# This action is useful as a prerequisite for any step or action that interacts
-# with GitHub repositories, issues, pull requests, or releases through the
-# command line.
+# Prerequisites:
+# - apt-get/curl available (for installation if needed)
+# - Sufficient permissions to install packages
 #
-# Behavior:
-# - Installs GitHub CLI (gh) using apt
+# Inputs:
+# - None required
+#   Action automatically handles detection and installation
 #
-# Output:
-# - GitHub CLI will be available for subsequent steps
+# Outputs:
+# - installed: Boolean indicating if installation was performed
+# - version: Installed gh CLI version
+#
+# Example Usage:
+# ```yaml
+# - uses: ./.github/actions/check-install-gh
+#   name: Ensure GitHub CLI is available
+# ```
+#
+# Error Handling:
+# - Checks system package manager availability
+# - Validates installation success
+# - Reports detailed error messages
 # ------------------------------------------------------------------------------
 
+
 name: check-install-gh
-description: 'Ensures GitHub CLI (gh) is installed and available on the runner. Installs it if missing.'
+description: Ensures GitHub CLI (gh) is installed and available
+
+outputs:
+  installed:
+    description: 'Whether gh CLI was newly installed'
+    value: ${{ steps.check_gh.outputs.installed  }}
+  version:
+    description: 'Installed gh CLI version'
+    value: ${{ steps.check_gh.outputs.version  }}
 
 runs:
   using: composite
@@ -46,11 +72,12 @@ runs:
             echo "::error::Unable to install gh. No supported package manager found."
             exit 1
           fi
-
+          echo "installed=true" >> $GITHUB_OUTPUT
           echo "::notice::✅ gh installed successfully"
         else
+          echo "installed=false" >> $GITHUB_OUTPUT
           echo "::notice::✅ gh is already installed"
         fi
-
-        # Verify version
+        
+        echo "version=$(gh --version | head -n1)" >> $GITHUB_OUTPUT
         echo "::notice::📊 Using $(gh --version)"

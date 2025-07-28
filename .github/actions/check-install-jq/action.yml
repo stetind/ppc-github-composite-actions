@@ -1,31 +1,63 @@
 # ------------------------------------------------------------------------------
 # Composite Action: check-install-jq
 #
-# This action ensures the `jq` CLI JSON processor is available on the runner.
-# If not found, it installs jq using the appropriate package manager based
-# on the environment:
+# This action verifies and installs jq (lightweight command-line JSON processor)
+# if not present in the environment. Essential for JSON parsing in workflows.
 #
-# Supported package managers:
-# - apt (Ubuntu/Debian)
-# - yum (RHEL/CentOS/Amazon Linux)
-# - apk (Alpine)
-# - brew (macOS with Homebrew)
+# Features:
+# - Automatic jq detection
+# - Version verification
+# - Platform-aware installation
+# - Minimal dependency footprint
+# - Installation validation
 #
-# This action is useful as a prerequisite for any step or action that parses
-# or manipulates JSON data in shell scripts or composite actions.
+# Prerequisites:
+# - apt-get available (for Debian/Ubuntu environments)
+# - Sufficient permissions to install packages
 #
-# Behavior:
-# - Logs whether jq is already installed
-# - Attempts to install jq if missing
-# - Fails with an error if no supported package manager is found
+# Inputs:
+# - None required
+#   Action automatically handles detection and installation
 #
-# Output:
-# - Displays installed jq version via GitHub Actions notices
+# Outputs:
+# - installed: Boolean indicating if jq was newly installed
+# - version: Installed jq version
+#
+# Example Usage:
+# ```yaml
+# - uses: ./.github/actions/check-install-jq
+#   name: Ensure jq is available
+# ```
+#
+# Example jq Usage After Installation:
+# ```yaml
+# - run: |
+#     echo '{"name": "test"}' | jq -r '.name'
+# ```
+#
+# Error Handling:
+# - Validates package manager availability
+# - Verifies installation success
+# - Reports clear error messages
+# - Checks jq functionality post-installation
+#
+# Note:
+# - Critical for workflows processing JSON data
+# - Lightweight installation (~200KB)
+# - Compatible with all major Linux distributions
 # ------------------------------------------------------------------------------
 
-name: check-install-jq
-description: 'Ensures jq is installed and available on the runner. Installs it if missing.'
 
+name: check-install-jq
+description: Ensures jq JSON processor is installed and available
+
+outputs:
+  installed:
+    description: 'Whether jq was newly installed'
+    value: ${{ steps.check_gh.outputs.installed }}
+  version:
+    description: 'Installed jq version'
+    value: ${{ steps.check_jq.outputs.version }}
 runs:
   using: composite
   steps:
@@ -51,11 +83,14 @@ runs:
             echo "::error::Unable to install jq. No supported package manager found."
             exit 1
           fi
-
+        
+          echo "installed=true" >> $GITHUB_OUTPUT
           echo "::notice::✅ jq installed successfully"
         else
+          echo "installed=false" >> $GITHUB_OUTPUT
           echo "::notice::✅ jq is already installed"
         fi
         
         # Verify version
+        echo "version=$(jq --version)" >> $GITHUB_OUTPUT
         echo "::notice::📊 Using $(jq --version)"
