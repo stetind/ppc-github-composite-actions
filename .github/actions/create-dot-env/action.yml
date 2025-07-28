@@ -1,44 +1,76 @@
-# GitHub Action: Create .env File
+# ------------------------------------------------------------------------------
+# Composite Action: create-dot-env
 #
-# This action generates a .env file by combining multiple sources of environment variables:
-# 1. Existing environment variables (filtered by pattern)
-# 2. GitHub Secrets
-# 3. Additional custom variables
+# Creates or updates a .env file by combining environment variables from multiple sources.
 #
 # Features:
-# - Supports regex pattern filtering for environment variables
-# - Securely handles GitHub Secrets
-# - Allows custom variable injection
-# - Creates/updates .env file in specified directory
+# - Direct environment variable processing
+# - Pattern-based variable filtering
+# - GitHub Secrets integration
+# - Custom variable support
+# - Secure file handling
+# - Directory path support
 #
-# Example usage:
+# Prerequisites:
+# - Write permissions in target directory
+# - jq for JSON processing (automatically installed)
+#
+# Inputs:
+# - variable_pattern:
+#   Required: false
+#   Default: '.*'
+#   Description: Regex pattern to filter environment variables
+#
+# - secrets:
+#   Required: false
+#   Description: JSON string of GitHub secrets to include
+#
+# - variables:
+#   Required: false
+#   Description: JSON object of additional variables to include
+#
+# - volume:
+#   Required: false
+#   Default: '.env'
+#   Description: Target  for the .env file
+#
+# Example Usage:
 # ```yaml
-# - uses: your-org/create-dot-env@v1
+# - uses: ./.github/actions/create-dot-env
 #   with:
 #     variable_pattern: '^APP_.*'
 #     secrets: ${{ toJSON(secrets) }}
 #     variables: '{"CUSTOM_VAR": "value"}'
-#     volume: '/custom/path'
+#     volume: './config/.env'
 # ```
+#
+# Error Handling:
+# - Validates input parameters
+# - Ensures directory existence
+# - Handles special characters
+# - Reports clear error messages
+# ---------------------------------------
+
 name: create-dot-env
-description: Creates a .env file by combining environment variables, secrets, and additional variables
+description: Creates a .env file from environment variables and secrets
+
 inputs:
   variable_pattern:
     required: false
-    description: 'Regular expression pattern to filter environment variables. Only variables matching this pattern will be included in the .env file'
+    description: 'Regex pattern to filter environment variables'
     default: ^[A-Za-z].*
-    secrets:
-      required: false
-      description: 'JSON object containing secret key-value pairs to be included in the .env file'
-      default: "{}"
-    volume:
-      required: false
-      description: 'Target directory path where the .env file will be created'
-      default: "/workspace"
-    variables:
-      required: false
-      description: 'JSON object containing additional variables to append to the .env file'
-      default: "{}"
+  secrets:
+    required: false
+    description: 'JSON string of secrets to include'
+    default: "{}"
+  variables:
+    required: false
+    description: 'JSON string of additional variables'
+    default: "{}"
+  volume:
+    required: false
+    description: 'Target path for the .env file'
+    default: "/workspace"
 
 runs:
   using: composite
