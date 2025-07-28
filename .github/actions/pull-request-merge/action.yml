@@ -2,6 +2,9 @@ name: Create PR
 description: Creates and optionally merges a pull request with support for branch cleanup
 
 inputs:
+  token:
+    description: 'GitHub token with branch deletion permissions'
+    required: true
   delete_source:
     description: ''
     default: 'false'
