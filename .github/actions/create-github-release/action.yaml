@@ -160,13 +160,13 @@ runs:
         fi
         
         # Create release
-        if gh release create "${{ inputs.tag }}" "${args[@]}"; then
+        if gh release create "${{ inputs.version }}" "${args[@]}"; then
           # Upload files if specified
           if [[ -n "${{ inputs.files }}" ]]; then
             IFS=',' read -ra FILES <<< "${{ inputs.files }}"
             for file in "${FILES[@]}"; do
               if [[ -f "$file" ]]; then
-                if ! gh release upload "${{ inputs.tag }}" "$file"; then
+                if ! gh release upload "${{ inputs.version }}" "$file"; then
                   echo "::warning::Failed to upload file: $file"
                   exit 1
                 fi
@@ -177,7 +177,7 @@ runs:
             done
           fi
         
-          echo "::notice::Release created successfully: ${{ inputs.tag }}"
+          echo "::notice::Release created successfully: ${{ inputs.version }}"
           echo "success=true" >> $GITHUB_OUTPUT
         else
           echo "::error::Failed to create release"
