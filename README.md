@@ -1,54 +1,54 @@
-# GitHub Composite Actions
+# GitHub Composite Actions Collection
 
-This repository contains reusable GitHub Actions that can be used in your workflows.
+A comprehensive collection of reusable GitHub composite actions for streamlining CI/CD workflows.
 
-## Available Actions
+## Core Actions
 
-All actions are located in the `.github/actions` directory. Each action has its own documentation in its respective directory.
+### Authentication & Setup
+- **check-install-gh**: Verifies and installs GitHub CLI
+- **check-install-git**: Ensures Git is properly installed
+- **check-install-jq**: Validates jq installation for JSON processing
+- **git-setup**: Configures Git environment for actions
+- **install-global-dependencies**: Sets up common dependencies
 
-## Versioning
+### Version Control & Release Management
+- **get-latest-tag**: Retrieves the most recent Git tag
+- **get-commits-since-tag**: Lists commits since last tag
+- **detect-version-bump**: Analyzes version changes
+- **check-release-exists**: Verifies if a release exists
+- **create-github-release**: Creates new GitHub releases
+- **generate-changelog**: Generates release changelogs
 
-This repository uses a versioning system to ensure stability in your workflows. When referencing actions from this repository, you can use either:
+### Pull Request Operations
+- **pull-request-create**: Creates new pull requests
+- **pull-request-create-merge**: Creates and optionally merges PRs
+- **delete-bracnh**: Safely removes branches post-merge
 
-1. The `main` branch (latest version, may change):
-   ```yaml
-   uses: stetind/ppc-github-composite-actions/.github/actions/action-name@main
-   ```
+### Utility Actions
+- **base64-decode**: Decodes base64 encoded content
+- **base64-encode**: Encodes content to base64
+- **create-dot-env**: Manages environment variable files
+- **maintenance-cleanup**: Handles workflow run cleanup
+- **final-summary**: Generates workflow execution reports
 
-2. A specific version tag (stable, won't change):
-   ```yaml
-   uses: stetind/ppc-github-composite-actions/.github/actions/action-name@v1.0.0
-   ```
+## Prerequisites
 
-## How to Release a New Version
+- GitHub token with appropriate permissions
+- GitHub CLI (`gh`) for certain actions
+- Git installation
+- `jq` for JSON processing
 
-This repository includes a workflow to help release new versions:
+## Usage
 
-1. Go to the "Actions" tab in the GitHub repository
-2. Select the "Release Version" workflow
-3. Click "Run workflow"
-4. Enter the version number (e.g., `v1.0.0`) and click "Run workflow"
+Each action includes detailed documentation in its respective directory. See individual `action.yml` files for:
+- Required inputs
+- Optional parameters
+- Usage examples
+- Dependencies
 
-The workflow will:
-1. Create a release branch
-2. Replace all `__VERSION__` placeholders in action files with the specified version
-3. Push the changes to the release branch
-4. Create a GitHub release with the specified version
+## Best Practices
 
-## How to Add __VERSION__ Placeholders
-
-When developing actions, you can use `__VERSION__` placeholders in your action files. These placeholders will be replaced with the actual version number during the release process.
-
-For example, instead of:
-
-```yaml
-uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@main
-```
-
-You can use:
-
-```yaml
-uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
-```
-
-This ensures that when a specific version is released, all internal references will point to that same version, maintaining consistency across the codebase.
+1. Always use specific versions when referencing these actions
+2. Review required permissions before implementation
+3. Test actions in isolation before production use
+4. Follow security best practices for token management
