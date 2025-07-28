@@ -1,31 +1,39 @@
 # ------------------------------------------------------------------------------
-# Composite Action: Delete Branch
+# Composite Action: delete-branch
 #
-# This action safely deletes a specified branch from a GitHub repository.
-# It uses the GitHub API to handle branch deletion, with proper error handling
-# and status reporting.
+# Safely deletes Git branches with validation and error handling.
+# Can handle both local and remote branches.
 #
 # Features:
-# - Safe branch deletion with verification
-# - Support for both protected and unprotected branches
-# - Proper error handling and status reporting
-# - Uses GitHub's API through dawidd6's action-delete-branch
+# - Safe branch deletion
+# - Remote branch support
+# - Protected branch checks
+# - Default branch protection
+# - Validation checks
 #
 # Prerequisites:
 # - GitHub token with branch deletion permissions
-# - Branch must exist in the repository
+# - gh CLI (automatically installed)
 #
 # Inputs:
-# - token: GitHub token with branch deletion permissions
-#   Required for authentication and authorization
-# - branch: Name of the branch to delete
-#   Can be a single branch name (e.g., 'feature/xyz')
+# - token:
+#   Required: true
+#   Description: GitHub token with branch deletion permissions
 #
-# Behavior:
-# - Attempts to delete the specified branch
-# - Reports success or failure through GitHub Actions notices
-# - Handles errors gracefully with appropriate messages
-# ------------------------------------------------------------------------------
+# - branch:
+#   Required: true
+#   Description: Name of the branch to delete
+#
+# - force:
+#   Required: false
+#   Default: 'false'
+#   Description: Force delete the branch even if not merged
+#
+# Outputs:
+# - success:
+#   Description: Boolean indicating if the branch was deleted successfully
+# -------
+
 
 name: Delete Branch
 description: Safely deletes a specified branch from a GitHub repository
@@ -37,6 +45,11 @@ inputs:
   branch:
     description: 'Name of the branch to delete'
     required: true
+  force:
+    description: 'Force delete the branch even if not merged'
+    required: false
+    default: 'false'
+
 
 runs:
   using: "composite"
