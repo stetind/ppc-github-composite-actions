@@ -16,7 +16,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: 🔧 Install gh
+    - name: 🔧 Install gh CLI
       uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
 
     - name: 🔧 Setup Git
