@@ -1,18 +1,55 @@
+# ------------------------------------------------------------------------------
+# Composite Action: base64-decode
+#
+# This action provides Base64 decoding functionality for GitHub Actions workflows.
+# It safely decodes Base64 encoded strings and handles potential errors.
+#
+# Features:
+# - Secure Base64 decoding
+# - Input validation
+# - Error handling for malformed Base64 input
+# - Support for multi-line content
+#
+# Prerequisites:
+# - None (uses built-in shell commands)
+#
+# Inputs:
+# - content: The Base64 encoded string to decode
+#   Required: true
+#   Description: Base64 encoded content that needs to be decoded
+#
+# Outputs:
+# - decoded: The decoded string content
+#   Description: The resulting plain text after Base64 decoding
+#
+# Example Usage:
+# ```yaml
+# - uses: ./.github/actions/base64-decode
+#   with:
+#     content: "SGVsbG8gV29ybGQh"
+# ```
+#
+# Error Handling:
+# - Validates input is not empty
+# - Checks for valid Base64 format
+# - Provides clear error messages for invalid input
+# ------------------------------------------------------------------------------
+
 name: Base64 Decode
 
 inputs:
   text:
     required: true
-    description: 'The base64 text'
+    description: 'The Base64 encoded content to decode'
 outputs:
   text:
-    description: ''
+    description: 'The decoded content'
     value: ${{ steps.decode.outputs.text }}
 
 runs:
   using: composite
   steps:
-    - name: Decode Release Notes
+    - name: 🔄 Decode Base64
       id: decode
       shell: bash
       run: |
