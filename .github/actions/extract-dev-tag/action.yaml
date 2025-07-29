@@ -1,0 +1,25 @@
+name: Extract Tag/suffix from Release tag
+
+inputs:
+  tag:
+    required: true
+    description: 'a release tag/name'
+outputs:
+  tag:
+    description: 'the release suffix'
+    value: ${{ steps.extract-tag.outputs.tag }}
+
+runs:
+  using: composite
+  steps:
+    - name: Extract dev tag from release tag
+      id: extract-tag
+      shell: bash
+      run: |
+        RELEASE_TAG="${{ inputs.tag }}"
+        if [[ $RELEASE_TAG == *-* ]]; then
+          TAG=$(echo $RELEASE_TAG | cut -d'-' -f2-)
+        else
+          TAG="dev"
+        fi
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
