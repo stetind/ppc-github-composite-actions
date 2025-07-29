@@ -22,7 +22,7 @@ runs:
   steps:
     - name: 🔄 Create Pull Request
       id: create_pr
-      uses: stetind/ppc-github-composite-actions/.github/actions/pull-request-create@__VERSION__
+      uses: stetind/ppc-github-composite-actions/.github/actions/pull-request-create@v1.0.1
       with:
         token: ${{ inputs.token }}
         title: ${{ inputs.new_tag }}
@@ -31,6 +31,6 @@ runs:
         body: ${{ inputs.new_tag }}
 
     - name: 🔀 Merge Pull Request
-      uses: stetind/ppc-github-composite-actions/.github/actions/pull-request-merge@__VERSION__
+      uses: stetind/ppc-github-composite-actions/.github/actions/pull-request-merge@v1.0.1
       with:
         url: ${{ steps.create_pr.outputs.pr_url }}
