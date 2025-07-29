@@ -59,7 +59,7 @@ runs:
     - name: 'Upgrade Global Dependencies'
       shell: bash
       run: |
-        npm outdated -g && npm update -g
+        npm update -g
 
     - name: Debug Production Input
       shell: bash
