@@ -68,8 +68,6 @@
 # - Reports detailed status
 # ------------------------------------------------------------------------------
 
-
-
 name: Create GitHub Release
 description: 'Creates a GitHub release with tag, changelog, and optional prerelease/draft flags.'
 
@@ -99,11 +97,14 @@ inputs:
     required: false
     default: "false"
     description: 'Set to "true" if this should be marked as a prerelease.'
+  prerelease_suffix:
+    required: false
+    default: "dev"
+    description: 'Set the suffix for prereleases'
   files:
     description: 'Comma-separated list of files to attach'
     required: false
     default: ''
-
   target_branch:
     required: true
     description: 'The branch or commit SHA that the tag should point to.'
@@ -116,7 +117,6 @@ outputs:
   success:
     description: 'Boolean indicating if the release was created successfully'
     value: ${{ steps.create-release.outputs.success }}
-
 
 runs:
   using: composite
@@ -162,14 +162,19 @@ runs:
           args+=("--target" "${{ inputs.target_branch }}")
         fi
         
+        version="${{ inputs.version }}"
+        if [[ "${{ inputs.prerelease }}" == "true" ]]; then
+          version+='-'${{ inputs.prerelease_suffix }}
+        fi
+        
         # Create release
-        if gh release create "${{ inputs.version }}" "${args[@]}"; then
+        if gh release create "$version" "${args[@]}"; then
           # Upload files if specified
           if [[ -n "${{ inputs.files }}" ]]; then
             IFS=',' read -ra FILES <<< "${{ inputs.files }}"
             for file in "${FILES[@]}"; do
               if [[ -f "$file" ]]; then
-                if ! gh release upload "${{ inputs.version }}" "$file"; then
+                if ! gh release upload "$version" "$file"; then
                   echo "::warning::Failed to upload file: $file"
                   exit 1
                 fi
@@ -180,23 +185,9 @@ runs:
             done
           fi
         
-          echo "::notice::Release created successfully: ${{ inputs.version }}"
+          echo "::notice::Release created successfully: $version"
           echo "success=true" >> $GITHUB_OUTPUT
         else
           echo "::error::Failed to create release"
           exit 1
         fi
-
-#    - name: Create Release
-#      uses: softprops/action-gh-release@v2.3.2
-#      with:
-#        tag_name: ${{ inputs.version }}
-#        name: Release ${{ inputs.version }}
-#        body: ${{ inputs.files != '' && '' || steps.decode.outputs.text }}
-#        body_path: ${{ inputs.files != '' && inputs.files || '' }}
-#        generate_release_notes: ${{ inputs.generate_release_notes  }}
-#        prerelease: ${{ inputs.prerelease }}
-#        target_commitish: ${{ inputs.target_branch }}
-#        draft: ${{ inputs.draft }}
-#      env:
-#        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
