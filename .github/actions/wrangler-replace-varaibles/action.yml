@@ -46,7 +46,7 @@ runs:
   using: composite
   steps:
     - name: 🔧 Install Jq
-      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@__VERSION__
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@v1.0.2
 
     - name: 🔧 Prepare wrangler environment variables
       shell: bash
