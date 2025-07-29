@@ -46,14 +46,6 @@ on:
         options:
           - 'self-hosted'
           - 'ubuntu-latest'
-      job_container:
-        description: 'Select the docker container for the action'
-        required: false
-        default: 'ubuntu:latest'
-        type: choice
-        options:
-          - 'node:22.14'
-          - 'ubuntu:latest'
 
 jobs:
   prepare:
