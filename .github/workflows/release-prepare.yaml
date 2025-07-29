@@ -58,12 +58,11 @@ on:
 jobs:
   prepare:
     name: Prepare & Push
-    uses: stetind/ppc-reusable-workflows/.github/workflows/release-preparation.yaml@v9.0.0
+    uses: stetind/ppc-reusable-workflows/.github/workflows/release-preparation.yaml@v10.0.1
     secrets: inherit
     with:
       tag: ${{ inputs.tag }}
       prerelease: ${{ inputs.prerelease }}
       merge_option: ${{ inputs.merge_option }}
       runner: ${{ inputs.runner }}
-      job_container: ${{ inputs.job_container }}
       temp_branch: 'releases'
