@@ -48,12 +48,18 @@ runs:
         dotenv@17.2.1 \
         dotenv-cli@9.0.0 \
         esbuild@0.25.8 \
+        husky@9.1.7 \
         npm@11.5.1 \
         npm-check-updates@18.0.2 \
         rimraf@6.0.1 \
         typescript@5.8.3 \
         ts-node@10.9.2 \
         esbuild-node-externals@1.18.0
+
+    - name: 'Upgrade Global Dependencies'
+      shell: bash
+      run: |
+        npm outdated -g && npm update -g
 
     - name: Debug Production Input
       shell: bash
