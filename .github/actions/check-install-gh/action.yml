@@ -56,22 +56,37 @@ runs:
       run: |
         set -e
         echo "::notice::🔍 Checking for gh installation..."
-
         if ! command -v gh &> /dev/null; then
+          # Function to handle command execution and redirect output
+          execute_command() {
+            if command -v sudo &> /dev/null; then
+              sudo "$@" &> /dev/null || "$@" &> /dev/null || {
+                echo "::error::Failed to execute: $*"
+                return 1
+            }
+            else
+              "$@" &> /dev/null || {
+                echo "::error::Failed to execute: $*"
+                return 1
+            }
+            fi
+          }
+          
           echo "::notice::📦 gh not found. Installing..."
+        
+          (type -p wget >/dev/null || (execute_command update && execute_command apt install wget -y)) \
+            && execute_command mkdir -p -m 755 /etc/apt/keyrings \
+            && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+            && cat $out | execute_command tee /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+            && execute_command chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+            && execute_command mkdir -p -m 755 /etc/apt/sources.list.d \
+            && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | execute_command tee /etc/apt/sources.list.d/github-cli.list \
+            && execute_command apt update \
+            && execute_command apt install gh -y -f
 
-          if command -v apt-get &> /dev/null; then
-            sudo apt-get update &> /dev/null && sudo apt-get install -y -f gh  &> /dev/null || apt-get update &> /dev/null && apt-get install -y -f gh &> /dev/null 
-          elif command -v yum &> /dev/null; then
-            sudo yum install -y gh &> /dev/null || yum install -y gh &> /dev/null 
-          elif command -v apk &> /dev/null; then
-            apk add --no-cache gh &> /dev/null 
-          elif command -v brew &> /dev/null; then
-            brew install gh &> /dev/null 
-          else
-            echo "::error::Unable to install gh. No supported package manager found."
-            exit 1
-          fi
+          execute_command apt update \
+            && execute_command apt install -y -f gh
+    
           echo "installed=true" >> $GITHUB_OUTPUT
           echo "::notice::✅ gh installed successfully"
         else
@@ -79,5 +94,11 @@ runs:
           echo "::notice::✅ gh is already installed"
         fi
         
+        # Verify installation
+        if ! command -v gh &> /dev/null; then
+          echo "::error::GitHub CLI installation failed"
+          exit 1
+        fi
+        
+        echo "::notice::📊 GitHub CLI installed successfully: $(gh --version | head -n1)"
         echo "version=$(gh --version | head -n1)" >> $GITHUB_OUTPUT
-        echo "::notice::📊 Using $(gh --version)"
