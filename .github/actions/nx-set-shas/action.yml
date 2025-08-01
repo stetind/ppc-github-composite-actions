@@ -1,0 +1,30 @@
+name: 'Setup SHAs'
+description: 'Github action which sets the base and head SHAs required for the `nx affected` commands in CI'
+inputs:
+  node_version:
+    description: 'Node version'
+    required: false
+    default: '22'
+outputs:
+  baseSHA:
+    description: "Base SHA"
+    value: ${{ steps.setSHAs.outputs.base }}
+  headSHA:
+    description: "Head SHA"
+    value: ${{ steps.setSHAs.outputs.head }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Derive appropriate SHAs
+      id: setSHAs
+      uses: nrwl/nx-set-shas@v4
+
+    - name: Print SHAs
+      shell: bash
+      run: |
+        echo "BASE=${{ steps.setSHAs.outputs.base }}" >> $GITHUB_OUTPUT
+        echo "::notice:: Base sha -> ${{ steps.setSHAs.outputs.base }}
+        echo "HEAD=${{ steps.setSHAs.outputs.head }}" >> $GITHUB_OUTPUT
+        echo "::notice:: HEAD sha -> ${{ steps.setSHAs.outputs.head }}
+

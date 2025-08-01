@@ -40,21 +40,49 @@ runs:
         echo "//registry.npmjs.org/:_authToken=${{ inputs.npm_token }}" > ./.npmrc &&
         cp ./.npmrc ~/.npmrc
 
-    - name: 'Install Global Dependencies'
+    - name: 'Install Global Dependencies : `cross-env`'
       shell: bash
-      run: |
-        npm install -g \
-        cross-env@10.0.0 \
-        dotenv@17.2.1 \
-        dotenv-cli@9.0.0 \
-        esbuild@0.25.8 \
-        husky@9.1.7 \
-        npm@11.5.1 \
-        npm-check-updates@18.0.2 \
-        rimraf@6.0.1 \
-        typescript@5.8.3 \
-        ts-node@10.9.2 \
-        esbuild-node-externals@1.18.0
+      run: npm install -g cross-env@10.0.0
+
+    - name: 'Install Global Dependencies : `dotenv`'
+      shell: bash
+      run: npm install -g dotenv@17.2.1
+
+    - name: 'Install Global Dependencies : `esbuild`'
+      shell: bash
+      run: npm install -g esbuild@0.25.8
+
+    - name: 'Install Global Dependencies : `husky`'
+      shell: bash
+      run: npm install -g husky@9.1.7
+
+    - name: 'Install Global Dependencies : `npm`'
+      shell: bash
+      run: npm install -g npm@11.5.1
+
+    - name: 'Install Global Dependencies : `npm-check-updates`'
+      shell: bash
+      run: npm install -g npm-check-updates@18.0.2
+
+    - name: 'Install Global Dependencies : `rimraf`'
+      shell: bash
+      run: npm install -g rimraf@6.0.1
+
+    - name: 'Install Global Dependencies : `typescript`'
+      shell: bash
+      run: npm install -g typescript@5.8.3
+
+    - name: 'Install Global Dependencies : `ts-node`'
+      shell: bash
+      run: npm install -g ts-node@10.9.2
+
+    - name: 'Install Global Dependencies : `esbuild-node-externals`'
+      shell: bash
+      run: npm install -g esbuild-node-externals@1.18.0
+
+    - name: 'Install Global Dependencies : `NX`'
+      shell: bash
+      run: npm add --global nx
 
     - name: 'Upgrade Global Dependencies'
       shell: bash
