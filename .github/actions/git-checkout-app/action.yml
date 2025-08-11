@@ -1,0 +1,76 @@
+# ------------------------------------------------------------------------------
+# Composite Action: git-checkout-app
+#
+# This action checks out a repository using a GitHub App installation token and
+# configures Git with the App bot identity for subsequent commits and pushes.
+#
+# Typical use cases:
+# - Automated workflows that need to push changes (e.g., version bumps, docs).
+# - Actions that require GitHub App permissions instead of PATs.
+#
+# Requirements:
+# - A GitHub App with appropriate repository permissions and at least one installation.
+# - The App ID and a PEM-formatted private key.
+# ------------------------------------------------------------------------------
+
+name: git-checkout-app
+description: Checkout a repository using a GitHub App token and configure Git identity for safe commits
+branding:
+  icon: git-commit
+  color: blue
+
+inputs:
+  app_id:
+    description: 'GitHub App ID (numeric). Example: 123456'
+    required: true
+  app_private_key:
+    description: 'GitHub App private key (PEM). Pass via a secret. Example: -----BEGIN PRIVATE KEY----- ...'
+    required: true
+  fetch-depth:
+    description: 'Git fetch depth. Use 0 for full history, 1 for shallow clone.'
+    required: false
+    default: '0'
+  ref:
+    description: 'Git ref to checkout (branch, tag, or SHA). Leave empty to use the default ref.'
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - name: 🔐 Create GitHub App token
+      uses: actions/create-github-app-token@v1
+      id: app_token
+      with:
+        app-id: ${{ inputs.app_id }}
+        private-key: ${{ inputs.app_private_key }}
+
+    - name: ⬇️ Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: ${{ inputs.depth }}
+        ref: ${{ inputs.ref }}
+        token: ${{ steps.app_token.outputs.token }}
+
+    - name: 🆔 Get GitHub App user ID
+      uses: octokit/request-action@v2.x
+      id: get_user_id
+      with:
+        route: GET /users/${{ steps.app_token.outputs.app-slug }}[bot]
+      env:
+        GITHUB_TOKEN: ${{ steps.app_token.outputs.token }}
+
+    - name: 🧰 Setup Git details
+      shell: bash
+      run: |
+        set -e
+        raw_output='${{ steps.get_user_id.outputs.data }}'
+        user_id=$(echo "$raw_output" | jq -r '.id')
+
+        if [ -z "$user_id" ] || [ "$user_id" = "null" ]; then
+          echo "Failed to parse user ID from the JSON response"
+          exit 1
+        fi
+
+        git config user.name "${{ steps.app_token.outputs.app-slug }}[bot]"
+        git config user.email "${user_id}+${{ steps.app_token.outputs.app-slug }}[bot]@users.noreply.github.com"
