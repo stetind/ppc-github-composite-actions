@@ -1,0 +1,2 @@
+fix: improve special character escaping in get-commits-since-tag action|
+fix: enhance character escaping in get-commits-since-tag action|

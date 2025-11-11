@@ -36,16 +36,16 @@ runs:
   using: composite
   steps:
     - name: 🔧 Install gh CLI
-      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@v1.0.7
 
     - name: 🔧 Install Jq
-      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@__VERSION__
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@v1.0.7
 
     - name: 🔧 Install Git
-      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-git@__VERSION__
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-git@v1.0.7
 
     - name: 🔧 Setup Git
-      uses: stetind/ppc-github-composite-actions/.github/actions/git-setup@__VERSION__
+      uses: stetind/ppc-github-composite-actions/.github/actions/git-setup@v1.0.7
 
     - name: 🏷️ Get latest tag
       id: get_tag
