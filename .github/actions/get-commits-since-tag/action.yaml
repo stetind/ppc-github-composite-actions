@@ -45,12 +45,13 @@ runs:
         # Function to escape special characters for GitHub Actions
         escape_special_chars() {
           echo "$1" | sed '
-            s/\\/\\\\/g;    # Escape backslashes first
-            s/`/\\`/g;      # Escape backticks
-            s/"/\\"/g;      # Escape double quotes
-            s/\$/\\$/g;     # Escape dollar signs
-            s/%/%%/g;       # Escape percent signs (GitHub Actions interpolation)
-          '
+            s/\\/\\\\/g;        # Escape backslashes first (must be first!)
+            s/`/\\`/g;          # Escape backticks
+            s/"/\\"/g;          # Escape double quotes
+            s/'"'"'/\\'"'"'/g;  # Escape single quotes
+            s/\$/\\$/g;         # Escape dollar signs
+            s/%/%%/g;           # Escape percent signs
+          ' | tr -d '\r'        # Remove carriage returns
         }
         
         if [[ "${{ inputs.tag }}" != "0.0.0" ]]; then
