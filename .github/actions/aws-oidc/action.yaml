@@ -1,0 +1,51 @@
+# AWS OIDC Authentication Action
+#
+# This composite action authenticates to AWS using OIDC (OpenID Connect) via a GitHub App.
+# It first obtains a GitHub App token, then uses that token's identity to assume an AWS IAM role.
+#
+# Usage:
+#   - uses: ./.github/actions/aws-oidc
+#     with:
+#       app_id: ${{ secrets.APP_ID }}
+#       app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
+#       account_id: '123456789012'
+#       github_role_name: 'GitHubActionsRole'
+#       region: 'us-east-1'
+
+name: AWS OIDC
+
+inputs:
+  app_id:
+    required: true
+    description: 'GitHub App ID used to generate authentication token'
+  app_private_key:
+    required: true
+    description: 'GitHub App private key for authentication'
+  account_id:
+    required: true
+    description: 'AWS account ID where the IAM role exists'
+  github_role_name:
+    required: true
+    description: 'Name of the AWS IAM role to assume'
+  region:
+    required: true
+    description: 'AWS region to configure credentials for'
+
+runs:
+  using: composite
+  steps:
+    - name: Get GitHub App Token
+      id: get_token
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ inputs.app_id }}
+        private-key: ${{ inputs.app_private_key }}
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        # Use the App's identity to assume the role
+        role-to-assume: arn:aws:iam::${{ inputs.account_id }}:role/${{ inputs.github_role_name }}
+        aws-region: ${{ inputs.region }}
+        role-duration-seconds: 3600
+        role-skip-session-tagging: true
