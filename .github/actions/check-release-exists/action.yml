@@ -74,10 +74,10 @@ runs:
   using: composite
   steps:
     - name: 🔧 Install gh CLI
-      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@__VERSION__
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-gh@v2.0.1
 
     - name: 🔧 Install Jq
-      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@__VERSION__
+      uses: stetind/ppc-github-composite-actions/.github/actions/check-install-jq@v2.0.1
 
     - name: Check if release exists
       id: check
