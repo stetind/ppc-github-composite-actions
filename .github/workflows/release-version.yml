@@ -22,9 +22,16 @@ jobs:
   update-version:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
+      - name: 🔐 Create GitHub App token
+        uses: actions/create-github-app-token@v2
+        id: app_token
+        with:
+          app-id: ${{ vars.PPC_CI_APP_ID }}
+          private-key: ${{ secrets.PPC_CI_APP_PRIVATE_KEY }}
+      - name: 🛫 Checkout
+        uses: actions/checkout@v6
+        with: 
+          token: '${{ steps.get_token.outputs.token }}'
       - name: Setup Git
         run: |
           git config user.name "GitHub Actions"
@@ -94,9 +101,16 @@ jobs:
     needs: update-version
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: 🔐 Create GitHub App token
+        uses: actions/create-github-app-token@v2
+        id: app_token
         with:
+          app-id: ${{ vars.PPC_CI_APP_ID }}
+          private-key: ${{ secrets.PPC_CI_APP_PRIVATE_KEY }}
+      - name: 🛫 Checkout
+        uses: actions/checkout@v6
+        with:
+          token: '${{ steps.get_token.outputs.token }}'
           ref: ${{ format('release/{0}', github.event.inputs.version) }}
           fetch-depth: 0
 
@@ -147,11 +161,17 @@ jobs:
     outputs:
       protected_branches: ${{ steps.set_output.outputs.protected_branches }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: 🔐 Create GitHub App token
+        uses: actions/create-github-app-token@v2
+        id: app_token
         with:
+          app-id: ${{ vars.PPC_CI_APP_ID }}
+          private-key: ${{ secrets.PPC_CI_APP_PRIVATE_KEY }}
+      - name: 🛫 Checkout
+        uses: actions/checkout@v6
+        with:
+          token: '${{ steps.get_token.outputs.token }}'
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Git
         run: |
