@@ -30,7 +30,7 @@ runs:
   using: composite
   steps:
     - name: Get GitHub App Token
-      uses: stetind/ppc-github-composite-actions/.github/actions/github-app-login@__VERSION__
+      uses: stetind/ppc-github-composite-actions/.github/actions/github-app-login@v2.0.0
       id: get_token
       with:
         app-id: ${{ inputs.app_id }}

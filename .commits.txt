@@ -1,0 +1,4 @@
+chore: bump reusable workflow versions to v11.0.2|
+chore: update reusable workflows and actions to latest versions|
+chore: clean up unused keys and formatting in composite action YAML files|
+feat!: add GitHub App login composite action and integrate with aws-oidc action|
