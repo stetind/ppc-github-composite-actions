@@ -23,7 +23,6 @@ outputs:
     description: 'the github app token'
     value: ${{ steps.get_token.outputs.token }}
 
-
 runs:
   using: composite
   steps:

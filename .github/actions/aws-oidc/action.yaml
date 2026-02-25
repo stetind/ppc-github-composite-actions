@@ -6,8 +6,6 @@
 # Usage:
 #   - uses: ./.github/actions/aws-oidc
 #     with:
-#       app_id: ${{ secrets.APP_ID }}
-#       app_private_key: ${{ secrets.APP_PRIVATE_KEY }}
 #       account_id: '123456789012'
 #       github_role_name: 'GitHubActionsRole'
 #       region: 'us-east-1'
