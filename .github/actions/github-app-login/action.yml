@@ -1,0 +1,35 @@
+# GitHub App Login Action
+#
+# This composite action authenticates using a GitHub App to obtain an access token.
+# The token can be used for GitHub API operations or as a credential for GitHub Actions.
+#
+# Required Secrets:
+#   - PPC_CI_APP_PRIVATE_KEY: The private key for the GitHub App (PEM format)
+#
+# Required Variables:
+#   - PPC_CI_APP_ID: The GitHub App ID
+#
+# Usage:
+#   - uses: ./.github/actions/github-app-login
+#
+# The secrets and vars are referenced in the action YAML as shown below:
+#   app-id: ${{ vars.PPC_CI_APP_ID }}
+#   private-key: ${{ secrets.PPC_CI_APP_PRIVATE_KEY }}
+
+name: PPC CI GitHub App Login
+
+outputs:
+  token:
+    description: 'the github app token'
+    value: ${{ steps.get_token.outputs.token }}
+
+
+runs:
+  using: composite
+  steps:
+    - name: Get GitHub App Token
+      id: get_token
+      uses: actions/create-github-app-token@v2
+      with:
+        app-id: ${{ vars.PPC_CI_APP_ID }}
+        private-key: ${{ secrets.PPC_CI_APP_PRIVATE_KEY }}

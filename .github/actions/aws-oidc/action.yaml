@@ -15,12 +15,6 @@
 name: AWS OIDC
 
 inputs:
-  app_id:
-    required: true
-    description: 'GitHub App ID used to generate authentication token'
-  app_private_key:
-    required: true
-    description: 'GitHub App private key for authentication'
   account_id:
     required: true
     description: 'AWS account ID where the IAM role exists'
@@ -30,13 +24,16 @@ inputs:
   region:
     required: true
     description: 'AWS region to configure credentials for'
-
+outputs:
+  token:
+    description: 'the github app token'
+    value: ${{ steps.get_token.outputs.token }}
 runs:
   using: composite
   steps:
     - name: Get GitHub App Token
+      uses: stetind/ppc-github-composite-actions/.github/actions/github-app-login@__VERSION__
       id: get_token
-      uses: actions/create-github-app-token@v2
       with:
         app-id: ${{ inputs.app_id }}
         private-key: ${{ inputs.app_private_key }}
