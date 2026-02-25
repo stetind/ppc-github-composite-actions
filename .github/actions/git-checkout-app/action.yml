@@ -40,7 +40,7 @@ runs:
   steps:
     - name: 🔐 Create GitHub App token
       uses: actions/create-github-app-token@v2
-      id: app_token
+      id: get_token
       with:
         app-id: ${{ inputs.app_id }}
         private-key: ${{ inputs.app_private_key }}
@@ -50,7 +50,7 @@ runs:
       with:
         fetch-depth: ${{ inputs.depth }}
         ref: ${{ inputs.ref }}
-        token: ${{ steps.app_token.outputs.token }}
+        token: ${{ steps.get_token.outputs.token }}
 
     - name: 🆔 Get GitHub App user ID
       uses: octokit/request-action@v2.x

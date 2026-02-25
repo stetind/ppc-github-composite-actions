@@ -28,7 +28,7 @@ runs:
   steps:
     - name: 🔐 Create GitHub App token
       uses: actions/create-github-app-token@v2
-      id: app_token
+      id: get_token
       with:
         app-id: ${{ vars.PPC_CI_APP_ID }}
         private-key: ${{ secrets.PPC_CI_APP_PRIVATE_KEY }}

@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: 🔐 Create GitHub App token
         uses: actions/create-github-app-token@v2
-        id: app_token
+        id: get_token
         with:
           app-id: ${{ vars.PPC_CI_APP_ID }}
           private-key: ${{ secrets.PPC_CI_APP_PRIVATE_KEY }}
@@ -103,7 +103,7 @@ jobs:
     steps:
       - name: 🔐 Create GitHub App token
         uses: actions/create-github-app-token@v2
-        id: app_token
+        id: get_token
         with:
           app-id: ${{ vars.PPC_CI_APP_ID }}
           private-key: ${{ secrets.PPC_CI_APP_PRIVATE_KEY }}
@@ -140,7 +140,7 @@ jobs:
           target_commitish: ${{ format('release/{0}', github.event.inputs.version) }}
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.token }}
 
       - name: Log release completion
         if: success()
@@ -163,7 +163,7 @@ jobs:
     steps:
       - name: 🔐 Create GitHub App token
         uses: actions/create-github-app-token@v2
-        id: app_token
+        id: get_token
         with:
           app-id: ${{ vars.PPC_CI_APP_ID }}
           private-key: ${{ secrets.PPC_CI_APP_PRIVATE_KEY }}
