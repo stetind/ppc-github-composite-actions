@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🔐 Create GitHub App token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         id: get_token
         with:
           app-id: ${{ vars.PPC_CI_APP_ID }}
@@ -102,7 +102,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🔐 Create GitHub App token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         id: get_token
         with:
           app-id: ${{ vars.PPC_CI_APP_ID }}
@@ -162,7 +162,7 @@ jobs:
       protected_branches: ${{ steps.set_output.outputs.protected_branches }}
     steps:
       - name: 🔐 Create GitHub App token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         id: get_token
         with:
           app-id: ${{ vars.PPC_CI_APP_ID }}
