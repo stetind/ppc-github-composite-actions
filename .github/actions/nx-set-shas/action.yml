@@ -4,7 +4,7 @@ inputs:
   node_version:
     description: 'Node version'
     required: false
-    default: '22'
+    default: '24'
 outputs:
   baseSHA:
     description: "Base SHA"
