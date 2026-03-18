@@ -1,0 +1,2 @@
+chore: update global dependencies and bump Node.js to v24 in workflows and actions|
+chore: bump create-github-app-token action to v3 across workflows|
