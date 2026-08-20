@@ -1,0 +1,1 @@
+chore: clean up and simplify install-global-dependencies action|
