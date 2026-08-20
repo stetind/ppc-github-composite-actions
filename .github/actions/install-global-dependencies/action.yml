@@ -1,30 +1,26 @@
 # ------------------------------------------------------------------------------
 # Composite Action: intall-global-dependencies
 #
-# This action installs global NPM dependencies and configures NPM with the 
-# provided authentication token. It also performs a local npm install with
+# This action installs global NPM dependencies.
+# It also performs a local npm install with
 # options based on whether it's a production or development environment.
 #
 # This action is useful as a prerequisite for any workflow that requires
 # specific global NPM packages and proper NPM authentication setup.
 #
 # Behavior:
-# - Sets up NPM token for authentication
 # - Installs specified global NPM dependencies
 # - Performs either a production or development npm install based on input
 #
 # Output:
 # - Global NPM dependencies will be available for subsequent steps
-# - NPM authentication will be configured
 # - Local dependencies will be installed
 # ------------------------------------------------------------------------------
 
 name: '🔧 Global Dependencies'
+description: 'This action installs global NPM dependencies'
 
 inputs:
-  npm_token:
-    description: 'NPM authentication token used for accessing private packages and configuring NPM registry'
-    required: true
   production:
     description: 'When set to "true", performs a production install (--omit=dev). Otherwise, installs all dependencies.'
     required: false
@@ -33,13 +29,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: 🔧 Setup Npm Token
-      shell: bash
-      run: |
-        npm config set //registry.npmjs.org/:_authToken ${{ inputs.npm_token }} &&
-        echo "//registry.npmjs.org/:_authToken=${{ inputs.npm_token }}" > ./.npmrc &&
-        cp ./.npmrc ~/.npmrc
-
     - name: 'Install Global Dependencies : `cross-env`'
       shell: bash
       run: npm install -g cross-env@10.1.0
@@ -75,10 +64,6 @@ runs:
     - name: 'Install Global Dependencies : `esbuild-node-externals`'
       shell: bash
       run: npm install -g esbuild-node-externals@1.20.1
-
-    - name: 'Install Global Dependencies : `NX`'
-      shell: bash
-      run: npm add --global nx
 
     - name: 'Upgrade Global Dependencies'
       shell: bash
