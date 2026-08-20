@@ -21,9 +21,6 @@ name: '🔧 Global Dependencies'
 description: 'This action installs global NPM dependencies'
 
 inputs:
-  npm_token:
-    description: 'NPM authentication token used for accessing private packages and configuring NPM registry'
-    required: true
   production:
     description: 'When set to "true", performs a production install (--omit=dev). Otherwise, installs all dependencies.'
     required: false
